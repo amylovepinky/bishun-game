@@ -119,6 +119,44 @@ h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
 .over h3{font-size:24px}
 .over p{margin:0;color:var(--ink-soft)}
 .over .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+/* adventure map */
+.mapwrap{position:relative;background:linear-gradient(180deg,#BFE6FF 0%,#D8F3DC 45%,#FFF1C9 100%);border-radius:24px;overflow:hidden;box-shadow:0 4px 0 var(--line)}
+.mapwrap svg.road{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.lvl{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;width:128px}
+.lvl .node{width:78px;height:78px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-size:30px;font-weight:700;box-shadow:0 6px 0 rgba(0,0,0,.18),inset 0 -6px 0 rgba(0,0,0,.12);border:4px solid #fff;position:relative}
+.lvl.locked .node{background:#B9C3D3;font-size:26px}
+.lvl.cur .node{animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-7px)}}
+.lvl .cap{background:var(--paper);border-radius:12px;padding:3px 10px;font-weight:700;font-size:15px;max-width:128px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 0 var(--line)}
+.lvl .st{font-size:13px;color:var(--sun);letter-spacing:1px;font-weight:700;text-shadow:0 1px 0 #fff}
+.lvl .badge{position:absolute;right:-8px;top:-8px;font-size:28px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.15))}
+.buddy{position:absolute;font-size:40px;transform:translate(-50%,-100%);pointer-events:none;transition:left .6s,top .6s;filter:drop-shadow(0 3px 0 rgba(0,0,0,.15))}
+.deco{position:absolute;font-size:30px;opacity:.9;pointer-events:none}
+.mapbar{display:flex;gap:8px;flex-wrap:wrap}
+.lvhead{background:var(--paper);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;border:3px solid var(--c)}
+.lvhead h2{font-size:24px}
+.prog{height:16px;background:var(--desk);border-radius:99px;overflow:hidden}
+.prog span{display:block;height:100%;background:linear-gradient(90deg,var(--c),var(--sun));border-radius:99px}
+.stickers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stk{background:var(--paper);border-radius:16px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:40px;box-shadow:0 3px 0 var(--line)}
+.stk small{font-size:11.5px;color:var(--ink-soft);max-width:95%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stk.no{font-size:30px;color:#C5CDDA;background:#F1F5FA}
+/* parent */
+.pl{background:var(--paper);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.pl .t{display:flex;gap:8px;align-items:baseline}
+.pl .t b{font-size:18px}
+.pl .chars{font-family:var(--font-kai);font-size:22px;letter-spacing:3px;word-break:break-all}
+.pl .acts{display:flex;gap:6px;flex-wrap:wrap}
+.sbtn{background:var(--desk);border-radius:10px;padding:7px 12px;font-weight:700;font-size:15px}
+.sbtn.danger{color:var(--grid)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field input,.field textarea{font:inherit;font-size:18px;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--paper);color:var(--ink);width:100%;box-sizing:border-box}
+.field textarea{font-family:var(--font-kai);font-size:24px;min-height:96px;letter-spacing:2px}
+.prev{display:flex;flex-wrap:wrap;gap:6px}
+.prev span{font-family:var(--font-kai);font-size:24px;width:42px;height:42px;display:grid;place-items:center;border-radius:10px;background:var(--desk)}
+.prev span.bad{background:#FFE3E3;color:var(--grid);text-decoration:line-through}
+.switch{display:flex;align-items:center;gap:10px;font-weight:700}
+.switch input{width:24px;height:24px}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:30;width:100%;height:100%}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -169,6 +207,10 @@ const UNITS = [
  {r:'辵',f:'辶',src:['這',-4,99],name:'辵字旁',pic:'🚶',c:'#7C5CF0',mean:'和走路有關。這個部首最後才寫喔！',chars:[['這','這裡'],['送','送禮物'],['近','很近']]},
  {r:'糸',f:'糸',src:['紅',0,6],name:'糸字旁',pic:'🧶',c:'#F2552C',mean:'和線、布有關。',chars:[['紅','紅色'],['線','線條'],['細','細細的']]},
 ];
+const STICKERS=['🐶','🐱','🐰','🦊','🐼','🐨','🦁','🐯','🐸','🐧','🦄','🐙','🦋','🐢','🐬','🦖','🐳','🦉','🐹','🐝'];
+const LV_COLORS=['#FF8A2A','#22A86A','#2B8CE6','#E06BA8','#7C5CF0','#F5A800','#E5484D','#3E9E8F'];
+const DECO=['🌈','🌼','☁️','🍄','🌟','🎈','🌳','🍭','🦋','🌻','🪁','🍓'];
+const DEFAULT_LEVELS=[{id:'l1',title:'拍拍手',chars:'拍手左右你他也上下'},{id:'l2',title:'這是誰的',chars:'這是誰的我分好了啊多個'}];
 const tint = (hex,a)=>hex+Math.round(a*255).toString(16).padStart(2,'0');
 
 /* ---------- storage ---------- */
@@ -179,6 +221,10 @@ const store = {
 let profile = store.get('profile',{name:'潼潼'});
 let progress = store.get('progress',{});
 let gridType = store.get('grid','tian');
+let levels = store.get('levels',null)||DEFAULT_LEVELS.map(l=>({...l}));
+let lvSettings = store.get('lvset',{lock:true,need:2});
+const saveLevels=()=>store.set('levels',levels);
+const hanOnly=s=>[...new Set([...(s||'')].filter(c=>/\p{Script=Han}/u.test(c)))];
 const totalStars = ()=>Object.values(progress).reduce((a,b)=>a+b,0);
 const starsHTML = n=>'★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i>';
 
@@ -264,12 +310,13 @@ function home(){
   <div class="hello"><div class="mini" id="heroMini"></div>
     <div><h1><button class="namebtn" id="nameBtn">${h(profile.name)}</button>，今天來練字吧！</h1>
     <p>看筆順、描一描、自己寫，一筆一筆把字寫漂亮。</p></div></div>
+  <button class="world" data-go="levels" style="--c:#E06BA8;--cbg:${tint('#E06BA8',.13)}"><div class="ico">🗺️</div><div><h2>闖關冒險</h2><p>${levels.length} 個關卡，已過 ${levels.filter(levelDone).length} 關・收集動物貼紙</p></div><div class="go">›</div></button>
   <button class="world" data-go="basic" style="--c:#FF8A2A;--cbg:${tint('#FF8A2A',.13)}"><div class="ico">丿</div><div><h2>基本筆畫</h2><p>橫、豎、撇、捺、點… 共 ${BASIC.length} 種</p></div><div class="go">›</div></button>
   <button class="world" data-go="units" style="--c:#22A86A;--cbg:${tint('#22A86A',.13)}"><div class="ico">氵</div><div><h2>部首樂園</h2><p>${UNITS.length} 個常用部首，已闖 ${doneUnits} 關</p></div><div class="go">›</div></button>
   <button class="world" data-go="free" style="--c:#7C5CF0;--cbg:${tint('#7C5CF0',.13)}"><div class="ico">字</div><div><h2>自由練習</h2><p>想寫哪個字都可以，名字也能練</p></div><div class="go">›</div></button>
   <p class="note">筆順依照教育部《常用國字標準字體筆順》。用手指在格子裡寫，每一筆都會檢查喔！</p>`);
   getChar('永').then(r=>{if(r)document.getElementById('heroMini')?.appendChild(miniSVG(makeStrokes(r,0,99),'var(--sun)'))});
-  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>({basic:basicList,units:unitList,free:freePage})[b.dataset.go]());
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>({levels:levelMap,basic:basicList,units:unitList,free:freePage})[b.dataset.go]());
   document.getElementById('nameBtn').onclick=nameEdit;
 }
 function nameEdit(){
@@ -344,11 +391,190 @@ function freePage(msg){
     let raw=null;try{raw=await getChar(c)}catch(e){er.textContent='載入失敗，請檢查網路後再試一次';return}
     if(!raw){er.textContent='「'+c+'」不在常用字表裡，換一個字試試看';return}
     store.set('recent',[c,...recent.filter(x=>x!==c)].slice(0,12));
-    practice([{key:'f:'+c,kind:'char',ch:c,from:0,to:99,label:c,sub:'',speak:c,title:'自由練習・'+c}],0,()=>freePage());
+    practice([{key:'c:'+c,kind:'char',ch:c,from:0,to:99,label:c,sub:'',speak:c,title:'自由練習・'+c}],0,()=>freePage());
   };
   document.getElementById('go').onclick=()=>go(document.getElementById('fc').value);
   document.getElementById('fc').onkeydown=e=>{if(e.key==='Enter')go(e.target.value)};
   app.querySelectorAll('.chip').forEach(b=>b.onclick=()=>go(b.textContent));
+}
+
+/* ---------- adventure levels ---------- */
+function charStars(c){return progress['c:'+c]||0}
+function levelStats(l){const cs=hanOnly(l.chars);const need=lvSettings.need||2;
+  const passed=cs.filter(c=>charStars(c)>=need).length;const stars=cs.reduce((a,c)=>a+charStars(c),0);
+  return {cs,passed,total:cs.length,stars,max:cs.length*3}}
+function levelDone(l){const s=levelStats(l);return s.total>0&&s.passed===s.total}
+function levelOpen(k){if(!lvSettings.lock||k===0)return true;return levelDone(levels[k-1])}
+function levelItems(l,k){
+  const cs=hanOnly(l.chars);
+  const it=cs.map(ch=>({key:'c:'+ch,kind:'char',ch,from:0,to:99,label:ch,sub:'',speak:ch,title:`第${k+1}關・${l.title}・${ch}`}));
+  return it;
+}
+function levelMap(){
+  if(!levels.length){
+    show(`${topbar('闖關冒險',true)}<div class="freebox"><h2 style="font-size:22px">還沒有關卡喔</h2><p class="note">請爸爸媽媽到「家長設定」新增關卡和要學的生字。</p><button class="btn" id="pa">家長設定</button></div>`);
+    bindBack(home);document.getElementById('pa').onclick=()=>parentGate(parentHome);return;
+  }
+  const got=levels.filter(levelDone).length;
+  show(`${topbar('闖關冒險',true)}
+  <div class="mapbar"><button class="tool" id="bk">🐾 貼紙收集冊 ${got}/${levels.length}</button><button class="tool" id="pa">⚙️ 家長設定</button></div>
+  <div class="mapwrap" id="mw"></div>
+  <p class="note">每一關的生字都「自己寫」過，就能過關，拿到一張動物貼紙！</p>`);
+  bindBack(home);
+  document.getElementById('bk').onclick=stickerBook;
+  document.getElementById('pa').onclick=()=>parentGate(parentHome);
+  const mw=document.getElementById('mw');
+  const W=mw.clientWidth||360, step=150, H=levels.length*step+90;
+  mw.style.height=H+'px';
+  // node positions (bottom = level 1, climbing up like an adventure)
+  const pos=levels.map((_,k)=>{const x=[.26,.6,.76,.42][k%4]*W;return [x,H-70-k*step]});
+  const svg=el('svg',{class:'road',viewBox:`0 0 ${W} ${H}`},mw);
+  let d=`M${pos[0][0]} ${pos[0][1]}`;
+  for(let k=1;k<pos.length;k++){const [x0,y0]=pos[k-1],[x1,y1]=pos[k];d+=` C${x0} ${y0-step*.55} ${x1} ${y1+step*.55} ${x1} ${y1}`}
+  el('path',{d,fill:'none',stroke:'#fff',"stroke-width":26,"stroke-linecap":'round',opacity:.85},svg);
+  el('path',{d,fill:'none',stroke:'#F2C14E',"stroke-width":6,"stroke-dasharray":'2 16',"stroke-linecap":'round'},svg);
+  // decorations
+  levels.forEach((_,k)=>{const dd=document.createElement('div');dd.className='deco';dd.textContent=DECO[k%DECO.length];
+    const left=(k%4<2)?W*.82:W*.08;dd.style.left=left+'px';dd.style.top=(H-70-k*step-60)+'px';mw.appendChild(dd)});
+  let cur=-1;
+  levels.forEach((l,k)=>{
+    const open=levelOpen(k),done=levelDone(l),st=levelStats(l),c=LV_COLORS[k%LV_COLORS.length];
+    if(open&&!done&&cur<0)cur=k;
+    const b=document.createElement('button');b.className='lvl'+(open?'':' locked');b.style.setProperty('--c',c);
+    b.style.left=pos[k][0]+'px';b.style.top=pos[k][1]+'px';
+    b.setAttribute('aria-label',`第${k+1}關 ${l.title}${open?'':'（還沒解鎖）'}`);
+    b.innerHTML=`<div class="node">${open?k+1:'🔒'}${done?`<span class="badge">${STICKERS[k%STICKERS.length]}</span>`:''}</div><div class="cap">${h(l.title)}</div><div class="st">${open?`★ ${st.stars}/${st.max}`:'&nbsp;'}</div>`;
+    b.onclick=()=>{if(!open){sfx.bad();setTimeout(()=>speak('要先通過前一關喔'),50);const n=b.querySelector('.node');n.classList.remove('shake');void n.offsetWidth;n.classList.add('shake');return}levelPage(k)};
+    mw.appendChild(b);
+  });
+  if(cur<0)cur=levels.length-1;
+  if(cur>=0){const p=pos[cur];const bd=document.createElement('div');bd.className='buddy';bd.textContent='🐣';bd.style.left=(p[0]+52)+'px';bd.style.top=(p[1]-14)+'px';mw.appendChild(bd);
+    mw.querySelectorAll('.lvl')[cur].classList.add('cur');
+    requestAnimationFrame(()=>{const r=mw.querySelectorAll('.lvl')[cur].getBoundingClientRect();window.scrollTo(0,Math.max(0,window.scrollY+r.top-innerHeight*.45))});}
+}
+function levelPage(k){
+  const l=levels[k],c=LV_COLORS[k%LV_COLORS.length],st=levelStats(l);
+  const items=levelItems(l,k);
+  items.onLast=()=>levelCheck(k);
+  const pct=st.total?Math.round(st.passed/st.total*100):0;
+  show(`${topbar('第 '+(k+1)+' 關',true)}
+  <div class="lvhead" style="--c:${c}"><h2>「${h(l.title)}」</h2>
+    <div class="prog" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div>
+    <p class="note" style="margin:0">已學會 ${st.passed} / ${st.total} 個字${levelDone(l)?`・已過關 ${STICKERS[k%STICKERS.length]}`:`・全部學會就能拿到 ${STICKERS[k%STICKERS.length]} 貼紙`}</p>
+    <button class="btn" id="goFirst">${st.passed?'繼續闖關 ›':'開始闖關 ›'}</button></div>
+  <div class="tiles" id="tl"></div>`);
+  bindBack(levelMap);
+  const need=lvSettings.need||2;
+  const firstTodo=Math.max(0,items.findIndex(it=>charStars(it.ch)<need));
+  document.getElementById('goFirst').onclick=()=>practice(items,levelDone(l)?0:firstTodo,()=>levelPage(k),c);
+  tilesInto(document.getElementById('tl'),items,c,i=>practice(items,i,()=>levelPage(k),c));
+}
+function levelCheck(k){
+  const l=levels[k];
+  if(!levelDone(l)){levelPage(k);const need=lvSettings.need||2;const left=levelStats(l).cs.filter(c=>charStars(c)<need);
+    setTimeout(()=>{const p=document.querySelector('.lvhead .note');if(p)p.innerHTML=`還差 <b style="color:var(--grid)">${left.join('、')}</b> 要「自己寫」過，加油！`},50);return}
+  const seen=store.get('seenDone',{});const first=!seen[l.id];seen[l.id]=1;store.set('seenDone',seen);
+  const sticker=STICKERS[k%STICKERS.length];const next=k+1<levels.length;
+  sfx.win();confetti();setTimeout(confetti,700);speak(`過關了！${profile.name}好棒！`);
+  const ov=document.createElement('div');ov.className='over';
+  ov.innerHTML=`<div class="box" role="dialog" aria-label="過關"><div style="font-size:84px;line-height:1">${sticker}</div><h3>第 ${k+1} 關「${h(l.title)}」過關！</h3>
+    <p>${first?`${h(profile.name)}得到一張新貼紙，放進收集冊囉！`:'這一關已經過了，再練一次也很棒！'}</p>
+    <div class="row">${next?`<button class="btn green" data-a="next">前往第 ${k+2} 關 ›</button>`:''}<button class="btn alt" data-a="map">回地圖</button></div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ov.remove();b.dataset.a==='next'?levelPage(k+1):levelMap()});
+}
+function stickerBook(){
+  show(`${topbar('貼紙收集冊',true)}<p class="note">每過一關，就會得到一位動物朋友。全部收集起來吧！</p><div class="stickers" id="sk"></div>`);
+  bindBack(levelMap);
+  const sk=document.getElementById('sk');
+  levels.forEach((l,k)=>{const d=document.createElement('div');const ok=levelDone(l);d.className='stk'+(ok?'':' no');
+    d.innerHTML=`${ok?STICKERS[k%STICKERS.length]:'?'}<small>${k+1}. ${h(l.title)}</small>`;sk.appendChild(d)});
+}
+
+/* ---------- parent settings ---------- */
+function parentGate(next){
+  const a=3+Math.floor(Math.random()*6),b=4+Math.floor(Math.random()*6);
+  show(`${topbar('家長專區',true)}
+  <div class="freebox"><label for="pg">請爸爸媽媽回答：${a} × ${b} = ?</label>
+  <div class="freerow"><input id="pg" inputmode="numeric" autocomplete="off" style="font-family:var(--font-ui)"><button class="btn" id="ok">進入</button></div>
+  <div class="err" id="er"></div><p class="note">這一步是為了避免小朋友不小心改到關卡。</p></div>`);
+  bindBack(levelMap);
+  const go=()=>{if(+document.getElementById('pg').value===a*b)next();else document.getElementById('er').textContent='答案不對，再試一次'};
+  document.getElementById('ok').onclick=go;document.getElementById('pg').onkeydown=e=>{if(e.key==='Enter')go()};
+}
+function parentHome(){
+  show(`${topbar('家長設定',true)}
+  <button class="btn" id="add">＋ 新增一關</button>
+  <div id="pls" style="display:flex;flex-direction:column;gap:10px"></div>
+  <div class="freebox">
+    <label class="switch"><input type="checkbox" id="lock" ${lvSettings.lock?'checked':''}> 要過前一關才能玩下一關</label>
+    <label class="switch"><input type="checkbox" id="need3" ${lvSettings.need===3?'checked':''}> 嚴格模式：每個字「自己寫」要拿到 3 顆星才算學會</label>
+    <p class="note">一般模式下，每個字「自己寫」完成一次（2 顆星）就算學會。</p>
+  </div>
+  <div class="freebox"><label for="bkup">備份關卡</label>
+    <p class="note" style="margin:0">關卡存在這支手機的瀏覽器裡。換手機或清除瀏覽器資料前，先複製這段文字存起來；之後貼回來按「還原」即可。</p>
+    <div class="field"><textarea id="bkup" style="font-family:monospace;font-size:13px;letter-spacing:0;min-height:80px">${h(JSON.stringify(levels))}</textarea></div>
+    <div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="sbtn" id="cp">複製</button><button class="sbtn" id="rs">還原</button></div>
+    <div class="err" id="bkmsg"></div></div>`);
+  bindBack(levelMap);
+  const pls=document.getElementById('pls');
+  levels.forEach((l,k)=>{
+    const d=document.createElement('div');d.className='pl';
+    d.innerHTML=`<div class="t"><b>第 ${k+1} 關「${h(l.title)}」</b><span class="note">${hanOnly(l.chars).length} 個字</span></div>
+      <div class="chars">${h(hanOnly(l.chars).join(''))}</div>
+      <div class="acts"><button class="sbtn" data-a="ed">編輯</button><button class="sbtn" data-a="up" ${k?'':'disabled'}>↑ 上移</button><button class="sbtn" data-a="dn" ${k<levels.length-1?'':'disabled'}>↓ 下移</button><button class="sbtn danger" data-a="del">刪除</button></div>`;
+    d.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+      const a=b.dataset.a;
+      if(a==='ed')return levelEdit(k);
+      if(a==='up'&&k>0){[levels[k-1],levels[k]]=[levels[k],levels[k-1]];saveLevels();return parentHome()}
+      if(a==='dn'&&k<levels.length-1){[levels[k+1],levels[k]]=[levels[k],levels[k+1]];saveLevels();return parentHome()}
+      if(a==='del'){if(b.dataset.sure){levels.splice(k,1);saveLevels();parentHome()}else{b.dataset.sure=1;b.textContent='再按一次確認刪除'}}
+    });
+    pls.appendChild(d);
+  });
+  document.getElementById('add').onclick=()=>levelEdit(-1);
+  document.getElementById('lock').onchange=e=>{lvSettings.lock=e.target.checked;store.set('lvset',lvSettings)};
+  document.getElementById('need3').onchange=e=>{lvSettings.need=e.target.checked?3:2;store.set('lvset',lvSettings)};
+  const msg=document.getElementById('bkmsg');
+  document.getElementById('cp').onclick=()=>{const t=document.getElementById('bkup');t.select();
+    try{navigator.clipboard.writeText(t.value).then(()=>{msg.style.color='var(--leaf)';msg.textContent='已複製'},()=>{msg.textContent='請長按文字自行複製'})}catch(e){msg.textContent='請長按文字自行複製'}};
+  document.getElementById('rs').onclick=()=>{try{const v=JSON.parse(document.getElementById('bkup').value);
+    if(!Array.isArray(v)||!v.every(x=>x&&typeof x.title==='string'&&typeof x.chars==='string'))throw 0;
+    levels=v.map((x,i)=>({id:x.id||('l'+Date.now()+i),title:x.title.slice(0,20),chars:hanOnly(x.chars).join('')}));saveLevels();parentHome()}
+    catch(e){msg.style.color='';msg.textContent='這段文字不是正確的備份，請重新貼上'}};
+}
+function levelEdit(k){
+  const l=k>=0?levels[k]:{id:'l'+Date.now(),title:'',chars:''};
+  show(`${topbar(k>=0?`編輯第 ${k+1} 關`:'新增關卡',true)}
+  <div class="freebox">
+    <div class="field"><label for="lt">關卡名稱（例如課文名稱）</label><input id="lt" maxlength="20" value="${h(l.title)}" placeholder="例如：拍拍手"></div>
+    <div class="field"><label for="lc">要學的生字</label><textarea id="lc" placeholder="例如：拍手左右你他">${h(l.chars)}</textarea>
+      <span class="note">直接打字就好，空格、逗號都沒關係，重複的字會自動去掉。</span></div>
+    <div class="prev" id="pv"></div><div class="err" id="er"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="sv">儲存</button><button class="btn alt" id="cc">取消</button></div>
+  </div>`);
+  bindBack(parentHome);
+  const lc=document.getElementById('lc'),pv=document.getElementById('pv'),er=document.getElementById('er');
+  let missing=[],tok=0;
+  async function preview(){
+    const t=++tok;const cs=hanOnly(lc.value);
+    pv.innerHTML=cs.map(c=>`<span data-c="${h(c)}">${h(c)}</span>`).join('');
+    missing=[];
+    for(const c of cs){let ok=false;try{ok=!!(await getChar(c))}catch(e){er.textContent='網路不穩，等一下再試';return}
+      if(t!==tok)return;if(!ok){missing.push(c);const s=pv.querySelector(`[data-c="${c}"]`);if(s)s.className='bad'}}
+    er.textContent=missing.length?`「${missing.join('、')}」不在常用字表，沒有筆順資料，儲存時會自動拿掉`:'';
+  }
+  let tm;lc.oninput=()=>{clearTimeout(tm);tm=setTimeout(preview,350)};preview();
+  document.getElementById('cc').onclick=parentHome;
+  document.getElementById('sv').onclick=async()=>{
+    const title=document.getElementById('lt').value.trim();
+    await preview();
+    const cs=hanOnly(lc.value).filter(c=>!missing.includes(c));
+    if(!title){er.textContent='請幫這一關取個名字';return}
+    if(!cs.length){er.textContent='請至少輸入一個生字';return}
+    const nl={id:l.id,title,chars:cs.join('')};
+    if(k>=0)levels[k]=nl;else levels.push(nl);saveLevels();parentHome();
+  };
 }
 
 /* ---------- practice ---------- */
@@ -476,11 +702,11 @@ function practice(items,idx,onBack,color='#FF8A2A'){
       <p>${mode==='self'?(mistakes?`寫錯了 ${mistakes} 次，下次再少一點！`:'一次都沒寫錯！'):'下一步：不看灰色提示，自己寫寫看，可以拿到更多星星。'}</p>
       <p>整齊度：${avg<22?'超整齊 ✨':avg<34?'很整齊':'還可以更整齊'}</p>
       <div class="row">${mode==='trace'?`<button class="btn" data-a="self">自己寫寫看</button>`:''}
-      ${items.length>1&&mode==='self'?`<button class="btn green" data-a="next">下一個 ›</button>`:''}
+      ${items.onLast&&mode==='self'&&idx===items.length-1?`<button class="btn green" data-a="last">看看過關了沒 ›</button>`:items.length>1&&mode==='self'?`<button class="btn green" data-a="next">下一個 ›</button>`:''}
       <button class="btn alt" data-a="again">再寫一次</button></div></div>`;
     document.body.appendChild(ov);
     ov.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ov.remove();busy=false;const a=b.dataset.a;
-      if(a==='self')startWrite('self');else if(a==='again')startWrite(mode);else practice(items,(idx+1)%items.length,onBack,color)});
+      if(a==='last')items.onLast();else if(a==='self')startWrite('self');else if(a==='again')startWrite(mode);else practice(items,(idx+1)%items.length,onBack,color)});
     cleanupOv=()=>ov.remove();
     document.querySelector('.starcount').innerHTML=`<b>★</b> ${totalStars()}`;
   }
