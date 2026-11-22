@@ -1,0 +1,542 @@
+<title>筆順小畫家</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
+<style>
+/* Layout: one column "習字簿" — a sky-blue desk, white workbook cards, and the classic red 田字格 as the hero of every screen. Single light look by choice (paper). */
+:root{
+  color-scheme: light;
+  --desk:#DDF0FF;      /* sky desk */
+  --paper:#FFFFFF;
+  --ink:#22304A;       /* navy pencil */
+  --ink-soft:#5B6884;
+  --grid:#E5484D;      /* workbook red grid */
+  --guide:#D9DEE8;     /* gray outline to trace */
+  --sun:#FF8A2A;       /* main accent */
+  --leaf:#22A86A;      /* correct */
+  --berry:#7C5CF0;
+  --line:#C9D8EA;
+  --font-kai:"LXGW WenKai TC","Kaiti TC","BiauKai","DFKai-SB","STKaiti",serif;
+  --font-ui:"LXGW WenKai TC","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --r:18px;
+}
+html,body{height:100%}
+body{background:var(--desk);color:var(--ink);font-family:var(--font-ui);font-size:17px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;padding-block:12px 32px}
+.screen{display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:10px;min-height:48px}
+.bar .title{flex:1;min-width:0;font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.back{width:46px;height:46px;border-radius:50%;background:var(--paper);display:grid;place-items:center;font-size:22px;box-shadow:0 2px 0 var(--line)}
+.starcount{display:flex;align-items:center;gap:4px;background:var(--paper);border-radius:99px;padding:6px 14px;font-weight:700;box-shadow:0 2px 0 var(--line);font-variant-numeric:tabular-nums}
+.starcount b{color:var(--sun)}
+
+/* home */
+.hello{display:flex;gap:14px;align-items:center;background:var(--paper);border-radius:var(--r);padding:16px;box-shadow:0 3px 0 var(--line)}
+.hello .mini{flex:none;width:86px;height:86px}
+.hello h1{font-size:25px;line-height:1.3}
+.hello p{margin:4px 0 0;color:var(--ink-soft);font-size:15px}
+.namebtn{color:var(--berry);text-decoration:underline dotted;text-underline-offset:4px}
+.world{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;text-align:left;width:100%;
+  background:var(--paper);border-radius:var(--r);padding:14px 16px;box-shadow:0 4px 0 var(--c,var(--line));border:2px solid var(--c,var(--line))}
+.world .ico{width:64px;height:64px;border-radius:16px;background:var(--cbg);display:grid;place-items:center;font-family:var(--font-kai);font-size:40px;color:var(--c)}
+.world h2{font-size:21px}
+.world p{margin:2px 0 0;color:var(--ink-soft);font-size:14.5px}
+.world .go{font-size:24px;color:var(--c)}
+.world:active,.tile:active{transform:translateY(2px)}
+
+/* unit list */
+.units{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.unit{background:var(--paper);border-radius:var(--r);padding:12px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 4px 0 var(--c);border:2px solid var(--c)}
+.unit .big{font-family:var(--font-kai);font-size:44px;line-height:1.1;color:var(--c)}
+.unit .nm{font-weight:700;font-size:16px}
+.unit .ex{color:var(--ink-soft);font-size:13px}
+.stars{color:var(--sun);letter-spacing:1px;font-size:14px;min-height:18px}
+.stars i{font-style:normal;color:#D7DCE6}
+
+/* unit detail */
+.radcard{display:flex;gap:14px;align-items:center;background:var(--paper);border-radius:var(--r);padding:14px;border:2px solid var(--c)}
+.radcard .pic{font-size:44px}
+.radcard h2{font-size:22px}
+.radcard p{margin:4px 0 0;color:var(--ink-soft);font-size:15px;line-height:1.5}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{background:var(--paper);border-radius:16px;padding:8px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 3px 0 var(--line)}
+.tile svg{width:100%;max-width:110px;aspect-ratio:1;height:auto}
+.tile .lb{font-size:14.5px;font-weight:700}
+.tile .sub{font-size:12.5px;color:var(--ink-soft)}
+.sec{font-size:15px;color:var(--ink-soft);font-weight:700;letter-spacing:.08em;margin-top:4px}
+
+/* free practice */
+.freebox{background:var(--paper);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px}
+.freebox label{font-weight:700}
+.freerow{display:flex;gap:10px}
+.freerow input{flex:1;min-width:0;font-family:var(--font-kai);font-size:30px;text-align:center;border:2px solid var(--line);border-radius:14px;padding:6px;background:var(--paper);color:var(--ink)}
+.btn{background:var(--sun);color:#fff;font-weight:700;border-radius:14px;padding:12px 18px;box-shadow:0 3px 0 #C85F0C;font-size:18px}
+.btn.alt{background:var(--paper);color:var(--ink);box-shadow:0 3px 0 var(--line);border:2px solid var(--line)}
+.btn.green{background:var(--leaf);box-shadow:0 3px 0 #147A4B}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--font-kai);font-size:24px;background:var(--desk);border-radius:12px;min-width:48px;height:48px;padding:0 8px}
+.note{font-size:14px;color:var(--ink-soft);line-height:1.6}
+.err{color:var(--grid);font-weight:700;min-height:1.4em;font-size:15px}
+
+/* practice */
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--paper);padding:5px;border-radius:16px}
+.modes button{border-radius:12px;padding:9px 4px;font-weight:700;font-size:16px;color:var(--ink-soft)}
+.modes button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.boardwrap{position:relative;align-self:center;width:min(100%,62vh,520px);aspect-ratio:1;max-width:100%}
+.board{width:100%;height:100%;background:var(--paper);border-radius:10px;touch-action:none;user-select:none;-webkit-user-select:none;display:block;box-shadow:0 4px 0 var(--line)}
+[hidden]{display:none!important}
+.status{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:52px}
+.status .count{flex:none}
+.status .say{flex:1;min-width:0;text-align:right;line-height:1.3}
+.count{font-weight:700;font-variant-numeric:tabular-nums}
+.count b{color:var(--sun);font-size:22px}
+.say{font-weight:700;font-size:18px;transition:transform .2s}
+.say.good{color:var(--leaf)} .say.bad{color:var(--grid)}
+.tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.tool{background:var(--paper);border-radius:14px;padding:10px 14px;font-weight:700;box-shadow:0 3px 0 var(--line);font-size:16px}
+.neat{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink-soft)}
+.neat .meter{flex:1;height:10px;background:var(--desk);border-radius:99px;overflow:hidden}
+.neat .meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--sun),var(--leaf));transition:width .4s}
+.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.pulse{animation:pulse 1.1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{50%{transform:scale(1.35);opacity:.6}}
+
+/* reward overlay */
+.over{position:fixed;inset:0;background:rgba(34,48,74,.45);display:grid;place-items:center;z-index:20;padding:max(16px,env(safe-area-inset-left,0px))}
+.over .box{background:var(--paper);border-radius:24px;padding:22px 20px;width:min(100%,380px);text-align:center;display:flex;flex-direction:column;gap:12px;animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.over .big{font-size:54px;letter-spacing:4px;color:var(--sun)}
+.over .big i{font-style:normal;color:#D7DCE6}
+.over h3{font-size:24px}
+.over p{margin:0;color:var(--ink-soft)}
+.over .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:30;width:100%;height:100%}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app" id="app"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+const DATA = /*DATA*/{};
+const CHUNKS = 32;
+
+/* ---------- content ---------- */
+const BASIC = [
+  {name:'橫',ch:'一',i:0,tip:'從左到右，平平的'},
+  {name:'豎',ch:'十',i:1,tip:'從上到下，直直的'},
+  {name:'撇',ch:'人',i:0,tip:'從右上往左下撇出去'},
+  {name:'捺',ch:'人',i:1,tip:'從左上往右下，尾巴壓一下'},
+  {name:'點',ch:'六',i:0,tip:'輕輕一點，往右下'},
+  {name:'提',ch:'打',i:2,tip:'從左下往右上提起來'},
+  {name:'橫折',ch:'口',i:1,tip:'先橫，轉彎再往下'},
+  {name:'豎鉤',ch:'小',i:0,tip:'直直往下，最後往左鉤'},
+  {name:'撇點',ch:'女',i:0,tip:'先撇，再轉向右下點'},
+  {name:'橫折鉤',ch:'月',i:1,tip:'橫、轉彎往下，最後鉤'},
+  {name:'豎彎鉤',ch:'七',i:1,tip:'往下、轉彎往右，再往上鉤'},
+  {name:'臥鉤',ch:'心',i:1,tip:'像躺著的小船，最後往上鉤'},
+  {name:'斜鉤',ch:'戈',i:1,tip:'斜斜往右下，最後往上鉤'},
+  {name:'橫折彎鉤',ch:'乙',i:0,tip:'一筆寫完，轉兩次彎'},
+];
+const UNITS = [
+ {r:'人',f:'亻',src:['你',0,2],name:'人字旁',pic:'🧍',c:'#FF8A2A',mean:'和「人」有關的字。單獨寫是「人」，在左邊變成「亻」。',chars:[['人','大人'],['你','你好'],['他','他們'],['休','休息']]},
+ {r:'口',f:'口',src:['口',0,3],name:'口字旁',pic:'👄',c:'#E5484D',mean:'和嘴巴、說話、吃東西有關。',chars:[['吃','吃飯'],['叫','叫聲'],['唱','唱歌']]},
+ {r:'木',f:'木',src:['木',0,4],name:'木字旁',pic:'🌳',c:'#22A86A',mean:'和樹木、木頭有關。兩個木是「林」，三個木是「森」。',chars:[['林','樹林'],['森','森林'],['本','本子']]},
+ {r:'水',f:'氵',src:['河',0,3],name:'三點水',pic:'💧',c:'#2B8CE6',mean:'和水有關。在左邊寫成三個點「氵」。',chars:[['水','喝水'],['河','河水'],['洗','洗手'],['海','大海']]},
+ {r:'火',f:'火',src:['火',0,4],name:'火字旁',pic:'🔥',c:'#F2552C',mean:'和火、熱、煮東西有關。',chars:[['炎','炎熱'],['炒','炒飯'],['灰','灰色']]},
+ {r:'土',f:'土',src:['土',0,3],name:'土字旁',pic:'🪴',c:'#B07A3B',mean:'和泥土、地面有關。在左邊時最後一筆變成「提」。',chars:[['地','地上'],['在','現在'],['坐','坐下']]},
+ {r:'日',f:'日',src:['日',0,4],name:'日字旁',pic:'☀️',c:'#F5A800',mean:'和太陽、時間有關。',chars:[['明','明天'],['早','早安'],['星','星星']]},
+ {r:'月',f:'月',src:['月',0,4],name:'月字旁',pic:'🌙',c:'#7C5CF0',mean:'和月亮有關，也有些和身體有關。',chars:[['朋','朋友'],['有','有趣'],['服','衣服']]},
+ {r:'山',f:'山',src:['山',0,3],name:'山字旁',pic:'⛰️',c:'#3E9E8F',mean:'和山、石頭有關。',chars:[['岩','岩石'],['岸','海岸'],['峰','山峰']]},
+ {r:'手',f:'扌',src:['打',0,3],name:'提手旁',pic:'✋',c:'#E06BA8',mean:'和手的動作有關。在左邊寫成「扌」，最後一筆是提。',chars:[['手','小手'],['打','打球'],['拍','拍手'],['拉','拉手']]},
+ {r:'心',f:'忄',src:['快',0,3],name:'豎心旁',pic:'❤️',c:'#E5484D',mean:'和心情、想法有關。在左邊寫成「忄」。',chars:[['心','開心'],['快','快樂'],['忙','幫忙'],['想','想念']]},
+ {r:'女',f:'女',src:['女',0,3],name:'女字旁',pic:'👧',c:'#E06BA8',mean:'和女生、家人有關。',chars:[['好','好朋友'],['媽','媽媽'],['妹','妹妹']]},
+ {r:'子',f:'子',src:['子',0,3],name:'子字旁',pic:'👶',c:'#2B8CE6',mean:'和小孩有關。在左邊時最後一筆變成「提」。',chars:[['字','寫字'],['孩','小孩'],['學','學校']]},
+ {r:'目',f:'目',src:['目',0,5],name:'目字旁',pic:'👀',c:'#3E9E8F',mean:'和眼睛、看東西有關。',chars:[['看','看書'],['眼','眼睛'],['睡','睡覺']]},
+ {r:'艸',f:'艹',src:['草',0,4],name:'草字頭',pic:'🌿',c:'#22A86A',mean:'和花草植物有關。寫在字的上面。',chars:[['草','小草'],['花','花朵'],['茶','喝茶']]},
+ {r:'雨',f:'雨',src:['雨',0,8],name:'雨字頭',pic:'🌧️',c:'#2B8CE6',mean:'和天氣有關。寫在上面時會變扁。',chars:[['雪','雪人'],['雲','白雲'],['電','電話']]},
+ {r:'言',f:'言',src:['說',0,7],name:'言字旁',pic:'💬',c:'#F5A800',mean:'和說話有關。',chars:[['言','語言'],['說','說話'],['話','電話']]},
+ {r:'宀',f:'宀',src:['家',0,3],name:'寶蓋頭',pic:'🏠',c:'#B07A3B',mean:'像一個屋頂，和房子有關。',chars:[['家','回家'],['安','安全'],['室','教室']]},
+ {r:'辵',f:'辶',src:['這',-4,99],name:'辵字旁',pic:'🚶',c:'#7C5CF0',mean:'和走路有關。這個部首最後才寫喔！',chars:[['這','這裡'],['送','送禮物'],['近','很近']]},
+ {r:'糸',f:'糸',src:['紅',0,6],name:'糸字旁',pic:'🧶',c:'#F2552C',mean:'和線、布有關。',chars:[['紅','紅色'],['線','線條'],['細','細細的']]},
+];
+const tint = (hex,a)=>hex+Math.round(a*255).toString(16).padStart(2,'0');
+
+/* ---------- storage ---------- */
+const store = {
+  get(k,d){try{const v=localStorage.getItem('bishun:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('bishun:'+k,JSON.stringify(v))}catch(e){}}
+};
+let profile = store.get('profile',{name:'潼潼'});
+let progress = store.get('progress',{});
+let gridType = store.get('grid','tian');
+const totalStars = ()=>Object.values(progress).reduce((a,b)=>a+b,0);
+const starsHTML = n=>'★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i>';
+
+/* ---------- data ---------- */
+const chunkCache = {};
+async function getChar(ch){
+  if(DATA[ch]) return DATA[ch];
+  const k = ch.codePointAt(0)%CHUNKS;
+  if(!chunkCache[k]) chunkCache[k] = fetch('d/s'+k+'.json').then(r=>{if(!r.ok)throw new Error('load');return r.json()}).catch(e=>{delete chunkCache[k];throw e});
+  const m = await chunkCache[k];
+  return m[ch]||null;
+}
+function nums(d){return d.match(/-?\d+(\.\d+)?/g).map(Number)}
+function mapPath(d,fx){ // all commands are absolute x y pairs
+  let i=0;return d.replace(/-?\d+(\.\d+)?/g,v=>{const r=(i%2===0)?fx.x(+v):fx.y(+v);i++;return r.toFixed(1)});
+}
+// Build an item: strokes [{d, t:[[x,y],...]}]; optionally recentered/scaled (for single strokes & radical parts)
+function makeStrokes(raw,from,to,fit){
+  let s = raw.slice(from<0?raw.length+from:from, to).map(([d,t])=>{const p=[];for(let i=0;i<t.length;i+=2)p.push([t[i],t[i+1]]);return {d,t:p}});
+  if(!fit) return s;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  s.forEach(st=>{const n=nums(st.d);for(let i=0;i<n.length;i+=2){x0=Math.min(x0,n[i]);x1=Math.max(x1,n[i]);y0=Math.min(y0,n[i+1]);y1=Math.max(y1,n[i+1])}});
+  const w=x1-x0,h=y1-y0, sc=Math.min(fit.max, fit.size/Math.max(w,h));
+  const cx=(x0+x1)/2, cy=(y0+y1)/2;
+  const fx={x:v=>256+(v-cx)*sc,y:v=>256+(v-cy)*sc};
+  return s.map(st=>({d:mapPath(st.d,fx),t:st.t.map(([x,y])=>[fx.x(x),fx.y(y)])}));
+}
+
+/* ---------- sound & speech ---------- */
+let ac=null;
+function tone(freqs,dur=.12,type='sine',gap=.09,vol=.18){
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    freqs.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;
+      const t=ac.currentTime+i*gap;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+      o.connect(g).connect(ac.destination);o.start(t);o.stop(t+dur+.02)});}catch(e){}
+}
+const sfx={good:()=>tone([880,1320],.15),great:()=>tone([784,1047,1568],.16),bad:()=>tone([220,180],.18,'triangle',.12,.15),win:()=>tone([523,659,784,1047,1319],.22,'sine',.11)};
+function speak(text){try{const u=new SpeechSynthesisUtterance(text);u.lang='zh-TW';u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+
+/* ---------- svg helpers ---------- */
+const NS='http://www.w3.org/2000/svg';
+function el(tag,attrs={},parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function gridSVG(g,type){
+  const st={stroke:'var(--grid)','stroke-width':2.2,fill:'none','vector-effect':'non-scaling-stroke'};
+  el('rect',{x:4,y:4,width:504,height:504,rx:6,...st,'stroke-width':3},g);
+  const dash={...st,'stroke-dasharray':'7 7',opacity:.75};
+  el('line',{x1:256,y1:4,x2:256,y2:508,...dash},g);el('line',{x1:4,y1:256,x2:508,y2:256,...dash},g);
+  if(type==='mi'){el('line',{x1:4,y1:4,x2:508,y2:508,...dash,opacity:.45},g);el('line',{x1:508,y1:4,x2:4,y2:508,...dash,opacity:.45},g)}
+}
+function miniSVG(strokes,color){
+  const s=el('svg',{viewBox:'0 0 512 512','aria-hidden':'true'});
+  const g=el('g',{},s);gridSVG(g,gridType);
+  strokes.forEach(st=>el('path',{d:st.d,fill:color||'var(--ink)'},s));
+  return s;
+}
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv=document.getElementById('confetti'),cx=cv.getContext('2d');
+  const W=cv.width=innerWidth*devicePixelRatio,H=cv.height=innerHeight*devicePixelRatio;
+  const cols=['#FF8A2A','#22A86A','#7C5CF0','#2B8CE6','#E06BA8','#F5A800'];
+  const ps=Array.from({length:140},()=>({x:W/2,y:H*.45,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.006,r:(4+Math.random()*6)*devicePixelRatio,c:cols[Math.random()*6|0],a:Math.random()*6,s:Math.random()<.4}));
+  let f=0;(function tick(){cx.clearRect(0,0,W,H);ps.forEach(p=>{p.vy+=H*.0009;p.x+=p.vx;p.y+=p.vy;p.a+=.15;cx.fillStyle=p.c;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);
+    if(p.s){cx.font=(p.r*3)+'px serif';cx.fillText('★',0,0)}else cx.fillRect(-p.r,-p.r/2,p.r*2,p.r);cx.restore()});
+    if(++f<150)requestAnimationFrame(tick);else cx.clearRect(0,0,W,H)})();
+}
+
+/* ---------- screens ---------- */
+const app=document.getElementById('app');
+let cleanup=null;
+function show(html){if(cleanup){cleanup();cleanup=null}app.innerHTML=html;window.scrollTo(0,0);return app}
+const h=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function topbar(title,back){
+  return `<div class="bar">${back?`<button class="back" data-back aria-label="回上一頁">‹</button>`:''}<div class="title">${title}</div><div class="starcount"><b>★</b> ${totalStars()}</div></div>`;
+}
+function bindBack(fn){const b=app.querySelector('[data-back]');if(b)b.onclick=fn}
+
+function home(){
+  const doneUnits=UNITS.filter(u=>unitStars(u)>0).length;
+  show(`${topbar('筆順小畫家')}
+  <div class="hello"><div class="mini" id="heroMini"></div>
+    <div><h1><button class="namebtn" id="nameBtn">${h(profile.name)}</button>，今天來練字吧！</h1>
+    <p>看筆順、描一描、自己寫，一筆一筆把字寫漂亮。</p></div></div>
+  <button class="world" data-go="basic" style="--c:#FF8A2A;--cbg:${tint('#FF8A2A',.13)}"><div class="ico">丿</div><div><h2>基本筆畫</h2><p>橫、豎、撇、捺、點… 共 ${BASIC.length} 種</p></div><div class="go">›</div></button>
+  <button class="world" data-go="units" style="--c:#22A86A;--cbg:${tint('#22A86A',.13)}"><div class="ico">氵</div><div><h2>部首樂園</h2><p>${UNITS.length} 個常用部首，已闖 ${doneUnits} 關</p></div><div class="go">›</div></button>
+  <button class="world" data-go="free" style="--c:#7C5CF0;--cbg:${tint('#7C5CF0',.13)}"><div class="ico">字</div><div><h2>自由練習</h2><p>想寫哪個字都可以，名字也能練</p></div><div class="go">›</div></button>
+  <p class="note">筆順依照教育部《常用國字標準字體筆順》。用手指在格子裡寫，每一筆都會檢查喔！</p>`);
+  getChar('永').then(r=>{if(r)document.getElementById('heroMini')?.appendChild(miniSVG(makeStrokes(r,0,99),'var(--sun)'))});
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>({basic:basicList,units:unitList,free:freePage})[b.dataset.go]());
+  document.getElementById('nameBtn').onclick=nameEdit;
+}
+function nameEdit(){
+  show(`${topbar('小朋友的名字',true)}
+  <div class="freebox"><label for="nm">要怎麼稱呼你呢？</label>
+  <div class="freerow"><input id="nm" maxlength="8" value="${h(profile.name)}" style="font-size:24px"><button class="btn" id="ok">好了</button></div>
+  <p class="note">名字會出現在鼓勵的話裡，也會變成「自由練習」裡的快速按鈕。</p></div>`);
+  bindBack(home);
+  document.getElementById('ok').onclick=()=>{const v=document.getElementById('nm').value.trim();if(v){profile.name=v;store.set('profile',profile)}home()};
+}
+
+/* items */
+function basicItems(){return BASIC.map((b,k)=>({key:'b:'+b.name,kind:'stroke',ch:b.ch,from:b.i,to:b.i+1,fit:{size:330,max:1.7},label:b.name,sub:b.tip,speak:b.name,title:'基本筆畫・'+b.name}))}
+function unitItems(u){
+  const [c,a,b]=u.src;
+  const it=[{key:'r:'+u.f,kind:'rad',ch:c,from:a,to:b,fit:(u.f===c? null:{size:360,max:1.35}),label:u.f,sub:u.name,speak:u.name,title:u.name+'「'+u.f+'」'}];
+  u.chars.forEach(([ch,w])=>it.push({key:'c:'+ch,kind:'char',ch,from:0,to:99,label:ch,sub:w,speak:`${ch}，${w}的${ch}`,title:`${ch}・${w}`}));
+  return it;
+}
+function unitStars(u){const it=unitItems(u);return it.reduce((a,i)=>a+(progress[i.key]||0),0)}
+async function loadItem(it){const raw=await getChar(it.ch);if(!raw)return null;return makeStrokes(raw,it.from,it.to,it.fit)}
+
+async function tilesInto(container,items,color,onPick){
+  for(const [k,it] of items.entries()){
+    const b=document.createElement('button');b.className='tile';
+    b.innerHTML=`<div class="sv"></div><div class="lb">${h(it.label)}</div><div class="sub">${h(it.sub)}</div><div class="stars">${starsHTML(progress[it.key]||0)}</div>`;
+    b.setAttribute('aria-label',it.label+' '+it.sub);
+    b.onclick=()=>onPick(k);container.appendChild(b);
+    loadItem(it).then(s=>{if(s)b.querySelector('.sv').appendChild(miniSVG(s,color))});
+  }
+}
+function basicList(){
+  show(`${topbar('基本筆畫',true)}<p class="note">每個字都是由這些筆畫組成的。先把每一筆練好，字就會變漂亮！</p><div class="tiles" id="tl"></div>`);
+  bindBack(home);
+  const items=basicItems();
+  tilesInto(document.getElementById('tl'),items,'#FF8A2A',k=>practice(items,k,basicList));
+}
+function unitList(){
+  show(`${topbar('部首樂園',true)}<p class="note">部首是字的「家族」。同一家族的字，常常意思有關係。</p><div class="units" id="ul"></div>`);
+  bindBack(home);
+  const ul=document.getElementById('ul');
+  UNITS.forEach((u,k)=>{const b=document.createElement('button');b.className='unit';b.style.setProperty('--c',u.c);
+    const tot=unitItems(u).length*3, got=unitStars(u);
+    b.innerHTML=`<div class="big">${h(u.f)}</div><div class="nm">${h(u.name)}</div><div class="ex">${u.chars.map(c=>c[0]).join('・')}</div><div class="stars" style="font-size:13px">★ ${got}/${tot}</div>`;
+    b.onclick=()=>unitPage(k);ul.appendChild(b)});
+}
+function unitPage(k){
+  const u=UNITS[k];
+  show(`${topbar(u.name,true)}
+  <div class="radcard" style="--c:${u.c}"><div class="pic" aria-hidden="true">${u.pic}</div><div><h2>${h(u.r===u.f?u.f:u.r+' → '+u.f)}</h2><p>${h(u.mean)}</p></div></div>
+  <div class="sec">先寫部首，再寫字</div><div class="tiles" id="tl"></div>`);
+  bindBack(unitList);
+  const items=unitItems(u);
+  tilesInto(document.getElementById('tl'),items,u.c,i=>practice(items,i,()=>unitPage(k),u.c));
+}
+function freePage(msg){
+  const nameChars=[...new Set([...profile.name].filter(c=>/\p{Script=Han}/u.test(c)))];
+  const recent=store.get('recent',[]);
+  show(`${topbar('自由練習',true)}
+  <div class="freebox"><label for="fc">輸入一個國字</label>
+    <div class="freerow"><input id="fc" maxlength="2" placeholder="字" autocomplete="off"><button class="btn" id="go">開始寫</button></div>
+    <div class="err" id="er">${msg?h(msg):''}</div>
+    ${nameChars.length?`<div><div class="sec">寫名字</div><div class="chips" id="nc">${nameChars.map(c=>`<button class="chip">${h(c)}</button>`).join('')}</div></div>`:''}
+    ${recent.length?`<div><div class="sec">最近寫過</div><div class="chips" id="rc">${recent.map(c=>`<button class="chip">${h(c)}</button>`).join('')}</div></div>`:''}
+    <p class="note">收錄教育部常用國字 4,800 多個字。第一次打開某個字需要一點點下載時間。</p></div>`);
+  bindBack(home);
+  const go=async c=>{
+    c=[...(c||'')].find(x=>/\p{Script=Han}/u.test(x));
+    const er=document.getElementById('er');
+    if(!c){er.textContent='請輸入一個中文字喔';return}
+    er.textContent='載入中…';
+    let raw=null;try{raw=await getChar(c)}catch(e){er.textContent='載入失敗，請檢查網路後再試一次';return}
+    if(!raw){er.textContent='「'+c+'」不在常用字表裡，換一個字試試看';return}
+    store.set('recent',[c,...recent.filter(x=>x!==c)].slice(0,12));
+    practice([{key:'f:'+c,kind:'char',ch:c,from:0,to:99,label:c,sub:'',speak:c,title:'自由練習・'+c}],0,()=>freePage());
+  };
+  document.getElementById('go').onclick=()=>go(document.getElementById('fc').value);
+  document.getElementById('fc').onkeydown=e=>{if(e.key==='Enter')go(e.target.value)};
+  app.querySelectorAll('.chip').forEach(b=>b.onclick=()=>go(b.textContent));
+}
+
+/* ---------- practice ---------- */
+function resample(pts,n){
+  if(pts.length===1)pts=[pts[0],[pts[0][0]+.1,pts[0][1]+.1]];
+  const L=[0];for(let i=1;i<pts.length;i++)L.push(L[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  const tot=L[L.length-1]||1e-6,out=[];let j=1;
+  for(let k=0;k<n;k++){const d=tot*k/(n-1);while(j<pts.length-1&&L[j]<d)j++;
+    const seg=(L[j]-L[j-1])||1e-6,u=Math.min(1,Math.max(0,(d-L[j-1])/seg));
+    out.push([pts[j-1][0]+(pts[j][0]-pts[j-1][0])*u,pts[j-1][1]+(pts[j][1]-pts[j-1][1])*u])}
+  return {pts:out,len:tot};
+}
+function compare(user,track,mode){
+  const N=24,a=resample(user,N),b=resample(track,N);
+  let m=0;for(let i=0;i<N;i++)m+=Math.hypot(a.pts[i][0]-b.pts[i][0],a.pts[i][1]-b.pts[i][1]);m/=N;
+  const sd=Math.hypot(a.pts[0][0]-b.pts[0][0],a.pts[0][1]-b.pts[0][1]);
+  const ed=Math.hypot(a.pts[N-1][0]-b.pts[N-1][0],a.pts[N-1][1]-b.pts[N-1][1]);
+  const lenOK=b.len<60||(a.len>b.len*.35&&a.len<b.len*2.6);
+  const tol=mode==='self'?1.2:1;
+  const ok=lenOK&&m<52*tol&&sd<85*tol&&ed<85*tol;
+  return {ok,mean:m,sd,ed};
+}
+
+function practice(items,idx,onBack,color='#FF8A2A'){
+  const it=items[idx];
+  let mode='demo',strokes=null,cur=0,mistakes=0,failHere=0,quality=[],busy=false,drawing=null,anims=[];
+  show(`${topbar(h(it.title),true)}
+  <div class="modes" role="group" aria-label="練習方式">
+    <button data-m="demo">① 看筆順</button><button data-m="trace">② 描描看</button><button data-m="self">③ 自己寫</button></div>
+  <div class="status"><div class="count" id="cnt"></div><div class="say" id="say" aria-live="polite"></div></div>
+  <div class="boardwrap"><svg class="board" id="bd" viewBox="0 0 512 512" role="img" aria-label="${h(it.label)} 的寫字格"></svg></div>
+  <div class="neat" id="neatRow" hidden><span>整齊度</span><div class="meter"><span id="neat"></span></div><span id="neatTxt"></span></div>
+  <div class="tools">
+    <button class="tool" id="tReplay">▶ 示範</button>
+    <button class="tool" id="tAgain">↺ 重寫</button>
+    <button class="tool" id="tSpeak">🔊 唸唸看</button>
+    <button class="tool" id="tGrid">${gridType==='tian'?'田字格':'米字格'}</button>
+    ${items.length>1?`<button class="tool" id="tNext">下一個 ›</button>`:''}
+  </div>`);
+  bindBack(onBack);
+  const bd=document.getElementById('bd'),say=document.getElementById('say'),cnt=document.getElementById('cnt');
+  const L={grid:el('g',{},bd),guide:el('g',{},bd),done:el('g',{},bd),anim:el('g',{},bd),hint:el('g',{},bd),ink:el('g',{},bd)};
+  const defs=el('defs',{},bd);
+  gridSVG(L.grid,gridType);
+  const uid='p'+Math.random().toString(36).slice(2,7);
+
+  function setSay(t,cls=''){say.textContent=t;say.className='say '+cls}
+  function setCount(){cnt.innerHTML=strokes?(cur<strokes.length?`第 <b>${cur+1}</b> 筆<br><small>共 ${strokes.length} 筆</small>`:`共 ${strokes.length} 筆 ✓`):''}
+  function setModes(){app.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===mode))}
+  function stopAnims(){anims.forEach(a=>{try{a.cancel()}catch(e){}});anims=[];L.anim.innerHTML='';L.hint.innerHTML=''}
+  function trackLen(t){let s=0;for(let i=1;i<t.length;i++)s+=Math.hypot(t[i][0]-t[i-1][0],t[i][1]-t[i-1][1]);return s}
+  function animStroke(i,col,dur){ // brush reveal clipped by outline
+    return new Promise(res=>{
+      const st=strokes[i];
+      const g=el('g',{'clip-path':`url(#${uid}c${i})`},L.anim);
+      const pts=st.t.length===1?[st.t[0],[st.t[0][0]+1,st.t[0][1]+1]]:st.t;
+      const pl=el('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:col,'stroke-width':78,'stroke-linecap':'round','stroke-linejoin':'round',pathLength:1,'stroke-dasharray':'1 2','stroke-dashoffset':1,visibility:'hidden'},g);
+      const d=dur||Math.max(380,trackLen(pts)*3.2);
+      pl.setAttribute('visibility','visible');
+      const a=pl.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:d,easing:'ease-in-out',fill:'forwards'});
+      anims.push(a);a.onfinish=()=>res(g);a.oncancel=()=>res(null);
+    });
+  }
+  function startDot(i,parent){
+    const t=strokes[i].t,p=t[0],q=t[Math.min(1,t.length-1)];
+    const g=el('g',{},parent);
+    const ang=Math.atan2(q[1]-p[1],q[0]-p[0]);
+    if(t.length>1){const ax=p[0]+Math.cos(ang)*46,ay=p[1]+Math.sin(ang)*46;
+      el('line',{x1:p[0],y1:p[1],x2:ax,y2:ay,stroke:'var(--berry)','stroke-width':5,'stroke-linecap':'round',opacity:.7},g);
+      const hx=ax,hy=ay;el('path',{d:`M${hx+Math.cos(ang+2.5)*14} ${hy+Math.sin(ang+2.5)*14}L${hx} ${hy}L${hx+Math.cos(ang-2.5)*14} ${hy+Math.sin(ang-2.5)*14}`,fill:'none',stroke:'var(--berry)','stroke-width':5,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.7},g)}
+    el('circle',{cx:p[0],cy:p[1],r:13,fill:'var(--berry)',class:'pulse'},g);
+    return g;
+  }
+  function numLabel(i,parent){
+    const p=strokes[i].t[0];const g=el('g',{},parent);
+    el('circle',{cx:p[0],cy:p[1],r:15,fill:'var(--paper)',stroke:'var(--berry)','stroke-width':2.5},g);
+    const tx=el('text',{x:p[0],y:p[1]+6,'text-anchor':'middle','font-size':17,'font-weight':700,fill:'var(--berry)','font-family':'system-ui,sans-serif'},g);tx.textContent=i+1;
+  }
+  function drawBase(){
+    L.guide.innerHTML='';L.done.innerHTML='';L.ink.innerHTML='';stopAnims();defs.innerHTML='';
+    strokes.forEach((st,i)=>{const cp=el('clipPath',{id:`${uid}c${i}`},defs);el('path',{d:st.d},cp)});
+    if(mode!=='self')strokes.forEach(st=>el('path',{d:st.d,fill:'var(--guide)'},L.guide));
+  }
+  function fillDone(i,col){el('path',{d:strokes[i].d,fill:col||'var(--ink)'},L.done)}
+  function updateNeat(){
+    const row=document.getElementById('neatRow');if(!quality.length||mode==='demo'){row.hidden=true;return}
+    row.hidden=false;const avg=quality.reduce((a,b)=>a+b,0)/quality.length;
+    const pct=Math.round(Math.max(0,Math.min(100,(60-avg)/45*100)));
+    document.getElementById('neat').style.width=pct+'%';
+    document.getElementById('neatTxt').textContent=pct>=80?'超整齊':pct>=55?'很整齊':'加油';
+  }
+
+  async function runDemo(){
+    mode='demo';setModes();cur=0;quality=[];updateNeat();drawBase();setCount();setSay('看清楚每一筆的順序喔');
+    cnt.innerHTML=`共 ${strokes.length} 筆`;
+    const token=Symbol();runDemo.t=token;
+    await new Promise(r=>setTimeout(r,350));
+    for(let i=0;i<strokes.length;i++){
+      if(runDemo.t!==token||mode!=='demo')return;
+      cnt.innerHTML=`第 <b>${i+1}</b> 筆<br><small>共 ${strokes.length} 筆</small>`;
+      const g=await animStroke(i,color);if(!g||runDemo.t!==token)return;
+      numLabel(i,L.hint);
+      await new Promise(r=>setTimeout(r,160));
+    }
+    if(runDemo.t===token){cnt.innerHTML=`共 ${strokes.length} 筆`;setSay('換你寫寫看！','good');speak(it.speak)}
+  }
+  function startWrite(m){
+    runDemo.t=null;mode=m;setModes();cur=0;mistakes=0;failHere=0;quality=[];updateNeat();drawBase();setCount();
+    setSay(m==='trace'?'照著灰色的筆畫描':'不看提示，自己寫寫看');
+    showCue();
+  }
+  function showCue(){L.hint.innerHTML='';if(mode==='trace'&&cur<strokes.length)startDot(cur,L.hint)}
+
+  function finish(){
+    busy=true;
+    let earned=1;
+    if(mode==='self'){earned=mistakes<=1?3:2}
+    const prev=progress[it.key]||0;
+    if(earned>prev){progress[it.key]=earned;store.set('progress',progress)}
+    sfx.win();confetti();speak(it.speak);
+    const avg=quality.reduce((a,b)=>a+b,0)/quality.length;
+    const praise=mode==='self'?(earned===3?`${profile.name}太厲害了！`:`${profile.name}寫完了，好棒！`):`描得真好，${profile.name}！`;
+    const ov=document.createElement('div');ov.className='over';
+    ov.innerHTML=`<div class="box" role="dialog" aria-label="完成"><div class="big">${starsHTML(earned)}</div><h3>${h(praise)}</h3>
+      <p>${mode==='self'?(mistakes?`寫錯了 ${mistakes} 次，下次再少一點！`:'一次都沒寫錯！'):'下一步：不看灰色提示，自己寫寫看，可以拿到更多星星。'}</p>
+      <p>整齊度：${avg<22?'超整齊 ✨':avg<34?'很整齊':'還可以更整齊'}</p>
+      <div class="row">${mode==='trace'?`<button class="btn" data-a="self">自己寫寫看</button>`:''}
+      ${items.length>1&&mode==='self'?`<button class="btn green" data-a="next">下一個 ›</button>`:''}
+      <button class="btn alt" data-a="again">再寫一次</button></div></div>`;
+    document.body.appendChild(ov);
+    ov.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ov.remove();busy=false;const a=b.dataset.a;
+      if(a==='self')startWrite('self');else if(a==='again')startWrite(mode);else practice(items,(idx+1)%items.length,onBack,color)});
+    cleanupOv=()=>ov.remove();
+    document.querySelector('.starcount').innerHTML=`<b>★</b> ${totalStars()}`;
+  }
+  let cleanupOv=null;
+
+  async function evaluate(pts){
+    const r=compare(pts,strokes[cur].t,mode);
+    if(r.ok){
+      const i=cur;quality.push(r.mean);cur++;failHere=0;
+      L.ink.innerHTML='';fillDone(i,color);
+      const great=r.mean<24;(great?sfx.great:sfx.good)();
+      setSay(great?['超漂亮！','完美！','好整齊！'][Math.random()*3|0]:['對了！','很好！','好棒！'][Math.random()*3|0],'good');
+      updateNeat();setCount();
+      if(cur>=strokes.length){L.hint.innerHTML='';setTimeout(finish,450)}else showCue();
+      return;
+    }
+    // wrong: which stroke did they draw?
+    let other=-1;for(let j=cur+1;j<strokes.length;j++){if(compare(pts,strokes[j].t,mode).ok){other=j;break}}
+    mistakes++;failHere++;sfx.bad();
+    const pl=L.ink.querySelector('polyline');if(pl){pl.setAttribute('stroke','var(--grid)');pl.animate([{opacity:1},{opacity:0}],{duration:600,fill:'forwards'})}
+    bd.classList.remove('shake');void bd.getBoundingClientRect();bd.classList.add('shake');
+    if(other>=0)setSay(`順序不對喔，這是第 ${other+1} 筆`,'bad');
+    else if(r.sd>85&&r.ed>85&&compare(pts.slice().reverse(),strokes[cur].t,mode).ok)setSay('方向寫反了，從紫色點開始','bad');
+    else setSay(mode==='self'&&failHere<2?'再試一次':'看一下這一筆怎麼寫','bad');
+    if(mode==='trace'||failHere>=2){busy=true;L.hint.innerHTML='';await animStroke(cur,tint(color,.55));L.anim.innerHTML='';busy=false;
+      if(mode==='self'){startDot(cur,L.hint);setTimeout(()=>{if(mode==='self')L.hint.innerHTML=''},1800)}else showCue()}
+  }
+
+  // pointer input
+  function toSvg(e){const p=bd.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const m=bd.getScreenCTM().inverse();const q=p.matrixTransform(m);return [q.x,q.y]}
+  bd.addEventListener('pointerdown',e=>{
+    if(mode==='demo'){if(!busy)startWrite('trace');return}
+    if(busy||!strokes||cur>=strokes.length||drawing)return;
+    e.preventDefault();bd.setPointerCapture(e.pointerId);
+    L.ink.innerHTML='';
+    drawing={id:e.pointerId,pts:[toSvg(e)],pl:el('polyline',{fill:'none',stroke:'var(--ink)','stroke-width':30,'stroke-linecap':'round','stroke-linejoin':'round',opacity:.85},L.ink)};
+    drawing.pl.setAttribute('points',drawing.pts.map(p=>p.join(',')).join(' '));
+  });
+  bd.addEventListener('pointermove',e=>{if(!drawing||e.pointerId!==drawing.id)return;
+    const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+    evs.forEach(ev=>{const p=toSvg(ev),l=drawing.pts[drawing.pts.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2)drawing.pts.push(p)});
+    drawing.pl.setAttribute('points',drawing.pts.map(p=>p.join(',')).join(' '))});
+  const up=e=>{if(!drawing||e.pointerId!==drawing.id)return;const pts=drawing.pts;drawing=null;evaluate(pts)};
+  bd.addEventListener('pointerup',up);bd.addEventListener('pointercancel',e=>{if(drawing&&e.pointerId===drawing.id){drawing=null;L.ink.innerHTML=''}});
+
+  app.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{if(!strokes)return;b.dataset.m==='demo'?runDemo():startWrite(b.dataset.m)});
+  document.getElementById('tReplay').onclick=()=>strokes&&runDemo();
+  document.getElementById('tAgain').onclick=()=>strokes&&(mode==='demo'?runDemo():startWrite(mode));
+  document.getElementById('tSpeak').onclick=()=>speak(it.speak);
+  document.getElementById('tGrid').onclick=e=>{gridType=gridType==='tian'?'mi':'tian';store.set('grid',gridType);e.target.textContent=gridType==='tian'?'田字格':'米字格';L.grid.innerHTML='';gridSVG(L.grid,gridType)};
+  const nx=document.getElementById('tNext');if(nx)nx.onclick=()=>practice(items,(idx+1)%items.length,onBack,color);
+  cleanup=()=>{runDemo.t=null;stopAnims();if(cleanupOv)cleanupOv();document.querySelectorAll('.over').forEach(o=>o.remove())};
+
+  setModes();setSay('載入中…');
+  loadItem(it).then(s=>{if(!s){setSay('找不到這個字的筆順','bad');return}strokes=s;runDemo()}).catch(()=>setSay('載入失敗，請檢查網路','bad'));
+}
+
+home();
+</script>
