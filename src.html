@@ -176,6 +176,19 @@ h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
 .page{background:var(--paper);border-radius:var(--r);padding:14px;display:flex;flex-wrap:wrap;gap:12px 8px;box-shadow:0 4px 0 var(--line)}
 .page .word{display:flex;gap:2px}
 .page .word svg{width:64px;height:64px}
+.wbwork{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:22px}
+.wbcell{display:flex;border:3px solid #2A3F9E;background:var(--paper);position:relative}
+.wbcell .box{aspect-ratio:1;display:block}
+.wbcell .box svg{width:100%;height:100%;display:block}
+.wbcell .zy{width:22%;border-left:2px solid #2A3F9E;background:#F6F8FF}
+.wbcell.model{width:min(46%,200px)}
+.wbcell.model .box{width:78%}
+.wbcell.write{width:min(100%,62vh,460px)}
+.wbcell.write .box{width:82%}
+.wbcell.write .board{border-radius:0;box-shadow:none}
+.wbcell .lab{position:absolute;left:-2px;top:-26px;font-size:13px;font-weight:700;color:#2A3F9E}
+.wbpagewrap{background:var(--paper);border-radius:12px;padding:8px;box-shadow:0 3px 0 var(--line)}
+.wbpagewrap svg{width:100%;height:auto;display:block}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:30;width:100%;height:100%}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -333,13 +346,13 @@ function home(){
     <div><h1><button class="namebtn" id="nameBtn">${h(profile.name)}</button>，今天來練字吧！</h1>
     <p>看筆順、描一描、自己寫，一筆一筆把字寫漂亮。</p></div></div>
   <button class="world" data-go="levels" style="--c:#E06BA8;--cbg:${tint('#E06BA8',.13)}"><div class="ico">🗺️</div><div><h2>闖關冒險</h2><p>${levels.length} 個關卡，已過 ${levels.filter(levelDone).length} 關・收集動物貼紙</p></div><div class="go">›</div></button>
-  <button class="world" data-go="hw" style="--c:#2B8CE6;--cbg:${tint('#2B8CE6',.13)}"><div class="ico">📒</div><div><h2>陪你寫作業</h2><p>輸入一組詞語，一個字一個字陪著寫完</p></div><div class="go">›</div></button>
+  <button class="world" data-go="hw" style="--c:#2B8CE6;--cbg:${tint('#2B8CE6',.13)}"><div class="ico">📒</div><div><h2>陪你寫作業</h2><p>像作業簿一樣，看範字、在下面跟著寫</p></div><div class="go">›</div></button>
   <button class="world" data-go="basic" style="--c:#FF8A2A;--cbg:${tint('#FF8A2A',.13)}"><div class="ico">丿</div><div><h2>基本筆畫</h2><p>橫、豎、撇、捺、點… 共 ${BASIC.length} 種</p></div><div class="go">›</div></button>
   <button class="world" data-go="units" style="--c:#22A86A;--cbg:${tint('#22A86A',.13)}"><div class="ico">氵</div><div><h2>部首樂園</h2><p>${UNITS.length} 個常用部首，已闖 ${doneUnits} 關</p></div><div class="go">›</div></button>
   <button class="world" data-go="free" style="--c:#7C5CF0;--cbg:${tint('#7C5CF0',.13)}"><div class="ico">字</div><div><h2>自由練習</h2><p>想寫哪個字都可以，名字也能練</p></div><div class="go">›</div></button>
   <p class="note">筆順依照教育部《常用國字標準字體筆順》。用手指在格子裡寫，每一筆都會檢查喔！</p>`);
   getChar('永').then(r=>{if(r)document.getElementById('heroMini')?.appendChild(miniSVG(makeStrokes(r,0,99),'var(--sun)'))});
-  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>({hw:()=>hwPage(),levels:levelMap,basic:basicList,units:unitList,free:freePage})[b.dataset.go]());
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>({hw:wbSetup,levels:levelMap,basic:basicList,units:unitList,free:freePage})[b.dataset.go]());
   document.getElementById('nameBtn').onclick=nameEdit;
 }
 function nameEdit(){
@@ -663,6 +676,168 @@ async function hwDone(items){
   document.getElementById('again').onclick=()=>{items.flow.done={};items.flow.best={};practice(items,0,()=>hwPage(),'#2B8CE6')};
   document.getElementById('new').onclick=()=>hwPage('');
   document.getElementById('hm').onclick=home;
+}
+
+/* ---------- workbook (作業簿) mode ---------- */
+const WB_BLUE='#2A3F9E';
+const WB_DEFAULT='秋千 陪伴\n高山 我們\n我和你\n到大海\n好朋友';
+function wbParse(text,reps){
+  // each line = one vertical column (rightmost first); words inside a line separated by spaces
+  const cols=[];
+  for(const line of String(text||'').split(/\n+/)){
+    const words=hwParse(line);if(!words.length)continue;
+    const cells=[];
+    words.forEach(w=>{const cs=[...w];
+      cs.forEach(ch=>cells.push({ch,word:w,model:true}));
+      for(let r=0;r<reps;r++)cs.forEach(ch=>cells.push({ch,word:w,model:false}));
+    });
+    cols.push(cells);
+  }
+  return cols;
+}
+function wbSetup(){
+  const text=store.get('wbText',WB_DEFAULT);let reps=store.get('wbReps',2);
+  show(`${topbar('陪你寫作業',true)}
+  <div class="freebox">
+    <div class="field"><label for="wbt">作業簿內容（一行＝一直行）</label>
+      <textarea id="wbt" style="min-height:150px">${h(text)}</textarea>
+      <span class="note">照作業簿從右邊第一行開始，一行打一行的詞語；同一行有兩個詞語就用空格分開，例如「秋千 陪伴」。</span></div>
+    <div class="field"><label>每個詞語跟著寫幾次</label><div class="reps">${[1,2,3].map(n=>`<button data-r="${n}" aria-pressed="${n===reps}">${n} 次</button>`).join('')}</div></div>
+    <div class="err" id="er"></div>
+    <button class="btn" id="go">翻開作業簿 ›</button>
+  </div>
+  <p class="note">每一行最上面是印好的「範字」，會先播放筆順；下面的空格讓孩子跟著寫，一格一格寫完。</p>`);
+  bindBack(home);
+  app.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{reps=+b.dataset.r;store.set('wbReps',reps);app.querySelectorAll('[data-r]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  document.getElementById('go').onclick=async()=>{
+    const er=document.getElementById('er'),t=document.getElementById('wbt').value;
+    const all=hanOnly(t);if(!all.length){er.textContent='請輸入至少一個中文字';return}
+    er.style.color='var(--ink-soft)';er.textContent='準備中…';
+    const missing=[];
+    for(const c of all){let ok=false;try{ok=!!(await getChar(c))}catch(e){er.style.color='';er.textContent='載入失敗，請檢查網路後再試一次';return}if(!ok)missing.push(c)}
+    store.set('wbText',t);
+    if(missing.length){er.style.color='';er.textContent=`「${missing.join('、')}」不在教育部常用字表，沒有筆順資料。請換掉這幾個字再開始。`;return}
+    const cols=wbParse(t,reps);
+    workbook({cols,pos:0,ink:{},stars:0});
+  };
+}
+function wbOrder(st){const o=[];st.cols.forEach((c,ci)=>c.forEach((cell,ri)=>{if(!cell.model)o.push([ci,ri])}));return o}
+function wbPageSVG(st,curKey){
+  const n=st.cols.length,rows=Math.max(...st.cols.map(c=>c.length));
+  const CW=512,ZW=150,colW=CW+ZW,W=n*colW,H=rows*CW;
+  const s=el('svg',{viewBox:`-6 -6 ${W+12} ${H+12}`,class:'wbpage',role:'img','aria-label':'作業簿'});
+  el('rect',{x:-6,y:-6,width:W+12,height:H+12,fill:'#FBFCFF'},s);
+  st.cols.forEach((col,ci)=>{
+    const x0=W-(ci+1)*colW; // right to left
+    for(let ri=0;ri<rows;ri++){
+      const cell=col[ri],y0=ri*CW,key=ci+'-'+ri;
+      const g=el('svg',{x:x0,y:y0,width:CW,height:CW,viewBox:'0 0 512 512'},s);
+      if(key===curKey)el('rect',{x:10,y:10,width:492,height:492,fill:'#FFE9D2'},g);
+      if(cell){
+        if(cell.model){const raw=DATA[cell.ch]||st.cache[cell.ch];if(raw)makeStrokes(raw,0,99).forEach(x=>el('path',{d:x.d,fill:'#3A3F4A'},g))}
+        else if(st.ink[key])st.ink[key].forEach(pts=>el('polyline',{points:pts.map(p=>p.join(',')).join(' '),fill:'none',stroke:'#4B5160','stroke-width':26,'stroke-linecap':'round','stroke-linejoin':'round'},g));
+      }
+      el('rect',{x:x0+CW,y:y0,width:ZW,height:CW,fill:'none',stroke:WB_BLUE,'stroke-width':3,'vector-effect':'non-scaling-stroke'},s);
+      el('rect',{x:x0,y:y0,width:CW,height:CW,fill:'none',stroke:WB_BLUE,'stroke-width':3,'vector-effect':'non-scaling-stroke'},s);
+    }
+  });
+  el('rect',{x:0,y:0,width:W,height:H,fill:'none',stroke:WB_BLUE,'stroke-width':6,'vector-effect':'non-scaling-stroke'},s);
+  return s;
+}
+async function workbook(st){
+  st.cache=st.cache||{};
+  for(const c of hanOnly(st.cols.flat().map(x=>x.ch).join('')))if(!DATA[c]&&!st.cache[c])st.cache[c]=await getChar(c);
+  const order=wbOrder(st);
+  if(st.pos>=order.length)return wbDone(st);
+  const [ci,ri]=order[st.pos],cell=st.cols[ci][ri],key=ci+'-'+ri;
+  const strokes=makeStrokes(DATA[cell.ch]||st.cache[cell.ch],0,99);
+  show(`${topbar('陪你寫作業',true)}
+  <div class="hwinfo"><span>📒 第 ${st.pos+1} / ${order.length} 格</span><span class="w">${h(cell.word)}</span></div>
+  <div class="wbwork">
+    <div class="wbcell model"><div class="lab">範字</div><div class="box"><svg id="mdl" viewBox="0 0 512 512" aria-label="範字 ${h(cell.ch)}"></svg></div><div class="zy"></div></div>
+    <div class="status" style="width:100%"><div class="count" id="cnt"></div><div class="say" id="say" aria-live="polite"></div></div>
+    <div class="wbcell write"><div class="box"><svg id="wr" class="board" viewBox="0 0 512 512" aria-label="在這裡跟著寫 ${h(cell.ch)}"></svg></div><div class="zy"></div></div>
+  </div>
+  <div class="tools"><button class="tool" id="tReplay">▶ 再看一次</button><button class="tool" id="tAgain">↺ 重寫這格</button><button class="tool" id="tSpeak">🔊 唸唸看</button><button class="tool" id="tPage">📖 看整頁</button></div>
+  <div class="speed" role="group" aria-label="示範速度"><span>🐢 示範速度</span>${SPEEDS.map(([v,t])=>`<button data-s="${v}" aria-pressed="${v===speed}">${t}</button>`).join('')}</div>
+  <div class="sec" id="pageTop">作業簿</div><div class="wbpagewrap" id="pg"></div>`);
+  bindBack(wbSetup);
+  const pg=document.getElementById('pg');pg.appendChild(wbPageSVG(st,key));
+  const mdl=document.getElementById('mdl'),wr=document.getElementById('wr'),say=document.getElementById('say'),cnt=document.getElementById('cnt');
+  const setSay=(t,c='')=>{say.textContent=t;say.className='say '+c};
+  const uid='w'+Math.random().toString(36).slice(2,7);
+  const defs=el('defs',{},mdl);
+  strokes.forEach((x,i)=>{const cp=el('clipPath',{id:`${uid}m${i}`},defs);el('path',{d:x.d},cp)});
+  const mBase=el('g',{},mdl),mAnim=el('g',{},mdl);
+  strokes.forEach(x=>el('path',{d:x.d,fill:'#3A3F4A'},mBase));
+  const wDefs=el('defs',{},wr);strokes.forEach((x,i)=>{const cp=el('clipPath',{id:`${uid}w${i}`},wDefs);el('path',{d:x.d},cp)});
+  const wAnim=el('g',{},wr),wDone=el('g',{},wr),wHint=el('g',{},wr),wInk=el('g',{},wr);
+  let anims=[],cur=0,mistakes=0,failHere=0,busy=false,drawing=null,myInk=[],token=0,timer=null;
+  const tl=t=>{let s=0;for(let i=1;i<t.length;i++)s+=Math.hypot(t[i][0]-t[i-1][0],t[i][1]-t[i-1][1]);return s};
+  function anim(svgG,clipPrefix,i,col){return new Promise(res=>{
+    const t=strokes[i].t.length===1?[strokes[i].t[0],[strokes[i].t[0][0]+1,strokes[i].t[0][1]+1]]:strokes[i].t;
+    const g=el('g',{'clip-path':`url(#${uid}${clipPrefix}${i})`},svgG);
+    const pl=el('polyline',{points:t.map(p=>p.join(',')).join(' '),fill:'none',stroke:col,'stroke-width':78,'stroke-linecap':'round','stroke-linejoin':'round',pathLength:1,'stroke-dasharray':'1 2','stroke-dashoffset':1},g);
+    const a=pl.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:Math.max(380,tl(t)*3.2)/speed,easing:'ease-in-out',fill:'forwards'});
+    anims.push(a);a.onfinish=()=>res(true);a.oncancel=()=>res(false)})}
+  function stop(){token++;anims.forEach(a=>{try{a.cancel()}catch(e){}});anims=[];mAnim.innerHTML=''}
+  async function demo(){
+    stop();const my=token;mBase.setAttribute('opacity',.18);setSay('看範字怎麼寫');
+    await new Promise(r=>setTimeout(r,300));
+    for(let i=0;i<strokes.length;i++){if(my!==token)return;cnt.innerHTML=`第 <b>${i+1}</b> 筆<br><small>共 ${strokes.length} 筆</small>`;
+      if(!await anim(mAnim,'m',i,'#2B8CE6'))return;await new Promise(r=>setTimeout(r,140/Math.sqrt(speed)))}
+    if(my===token){setCount();setSay('換你在下面寫！','good')}
+  }
+  function setCount(){cnt.innerHTML=`第 <b>${Math.min(cur+1,strokes.length)}</b> 筆<br><small>共 ${strokes.length} 筆</small>`}
+  function resetWrite(){cur=0;mistakes=0;failHere=0;myInk=[];wDone.innerHTML='';wInk.innerHTML='';wHint.innerHTML='';wAnim.innerHTML='';setCount()}
+  function dot(i){const p=strokes[i].t[0];el('circle',{cx:p[0],cy:p[1],r:13,fill:'var(--berry)',class:'pulse'},wHint)}
+  function toSvg(e){const p=wr.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(wr.getScreenCTM().inverse());return [q.x,q.y]}
+  wr.addEventListener('pointerdown',e=>{if(busy||cur>=strokes.length||drawing)return;e.preventDefault();wr.setPointerCapture(e.pointerId);
+    if(anims.length){stop();mBase.setAttribute('opacity',1)}
+    wInk.querySelectorAll('.tmp').forEach(x=>x.remove());
+    drawing={id:e.pointerId,pts:[toSvg(e)],pl:el('polyline',{class:'tmp',fill:'none',stroke:'#3A3F4A','stroke-width':28,'stroke-linecap':'round','stroke-linejoin':'round'},wInk)};
+    drawing.pl.setAttribute('points',drawing.pts.map(p=>p.join(',')).join(' '))});
+  wr.addEventListener('pointermove',e=>{if(!drawing||e.pointerId!==drawing.id)return;
+    (e.getCoalescedEvents?e.getCoalescedEvents():[e]).forEach(ev=>{const p=toSvg(ev),l=drawing.pts.at(-1);if(Math.hypot(p[0]-l[0],p[1]-l[1])>2)drawing.pts.push(p)});
+    drawing.pl.setAttribute('points',drawing.pts.map(p=>p.join(',')).join(' '))});
+  wr.addEventListener('pointercancel',e=>{if(drawing&&e.pointerId===drawing.id){drawing.pl.remove();drawing=null}});
+  wr.addEventListener('pointerup',async e=>{if(!drawing||e.pointerId!==drawing.id)return;const {pts,pl}=drawing;drawing=null;
+    const r=compare(pts,strokes[cur].t,'self');
+    if(r.ok){pl.classList.remove('tmp');myInk.push(pts.map(p=>[Math.round(p[0]),Math.round(p[1])]));cur++;failHere=0;wHint.innerHTML='';
+      (r.mean<24?sfx.great:sfx.good)();setSay(r.mean<24?'好整齊！':['對了！','很好！','好棒！'][Math.random()*3|0],'good');setCount();
+      if(cur>=strokes.length)done();return}
+    let other=-1;for(let j=cur+1;j<strokes.length;j++)if(compare(pts,strokes[j].t,'self').ok){other=j;break}
+    mistakes++;failHere++;sfx.bad();pl.setAttribute('stroke','var(--grid)');pl.animate([{opacity:1},{opacity:0}],{duration:600,fill:'forwards'});setTimeout(()=>pl.remove(),650);
+    setSay(other>=0?`順序不對喔，這是第 ${other+1} 筆`:failHere<2?'再試一次':'看一下這一筆怎麼寫','bad');
+    if(failHere>=2){busy=true;await anim(wAnim,'w',cur,tint('#2B8CE6',.45));wAnim.innerHTML='';dot(cur);busy=false;setTimeout(()=>wHint.innerHTML='',1800)}
+  });
+  function done(){
+    busy=true;st.ink[key]=myInk;const earned=mistakes<=1?3:2;st.stars+=earned;
+    const pk='c:'+cell.ch;if(earned>(progress[pk]||0)){progress[pk]=earned;store.set('progress',progress)}
+    document.querySelector('.starcount').innerHTML=`<b>★</b> ${totalStars()}`;
+    speak(cell.ch);setSay(st.pos+1<order.length?'寫好了！下一格':'全部寫完了！','good');
+    pg.innerHTML='';pg.appendChild(wbPageSVG(st,null));
+    timer=setTimeout(()=>{st.pos++;workbook(st)},1300);
+  }
+  document.getElementById('tReplay').onclick=()=>demo();
+  document.getElementById('tAgain').onclick=()=>{if(!busy)resetWrite()};
+  document.getElementById('tSpeak').onclick=()=>speak(cell.word.length>1?`${cell.ch}，${cell.word}的${cell.ch}`:cell.ch);
+  document.getElementById('tPage').onclick=()=>document.getElementById('pageTop').scrollIntoView({behavior:'smooth'});
+  app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{speed=+b.dataset.s;store.set('speed',speed);app.querySelectorAll('[data-s]').forEach(x=>x.setAttribute('aria-pressed',x===b));demo()});
+  cleanup=()=>{clearTimeout(timer);stop()};
+  resetWrite();demo();
+}
+function wbDone(st){
+  const order=wbOrder(st);
+  show(`${topbar('作業寫完了！',true)}
+  <div class="hello"><div style="font-size:64px;line-height:1">🏅</div><div><h1>${h(profile.name)}把作業寫完了！</h1><p>寫了 ${order.length} 格，拿到 ${st.stars} / ${order.length*3} 顆星。</p></div></div>
+  <div class="wbpagewrap" id="pg"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="again">再寫一次</button><button class="btn alt" id="new">換作業內容</button><button class="btn alt" id="hm">回首頁</button></div>`);
+  bindBack(wbSetup);
+  document.getElementById('pg').appendChild(wbPageSVG(st,null));
+  sfx.win();confetti();setTimeout(confetti,800);speak(`作業寫完了！${profile.name}好棒！`);
+  document.getElementById('again').onclick=()=>workbook({cols:st.cols,pos:0,ink:{},stars:0,cache:st.cache});
+  document.getElementById('new').onclick=wbSetup;document.getElementById('hm').onclick=home;
 }
 
 /* ---------- practice ---------- */
