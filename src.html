@@ -161,6 +161,21 @@ h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
 .speed span{grid-column:1/-1;text-align:center;font-weight:700;font-size:15px;color:var(--ink-soft)}
 .speed button{background:var(--paper);border-radius:99px;padding:8px 4px;font-weight:700;font-size:15px;box-shadow:0 2px 0 var(--line)}
 .speed button[aria-pressed="true"]{background:var(--berry);color:#fff;box-shadow:0 2px 0 #5038B8}
+.wb{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin}
+.wb .cell{flex:none;width:52px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.wb .cell .bx{width:52px;height:52px;background:var(--paper);border-radius:8px;display:grid;place-items:center;font-family:var(--font-kai);font-size:30px;color:#C5CDDA;box-shadow:0 2px 0 var(--line);overflow:hidden}
+.wb .cell .bx svg{width:100%;height:100%}
+.wb .cell.now .bx{outline:3px solid var(--sun);color:var(--ink)}
+.wb .cell small{font-size:11px;color:var(--ink-soft);white-space:nowrap}
+.wb .gap{flex:none;width:6px}
+.hwinfo{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
+.hwinfo .w{font-family:var(--font-kai);font-size:20px;color:var(--berry)}
+.reps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.reps button{background:var(--desk);border-radius:12px;padding:10px 4px;font-weight:700}
+.reps button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.page{background:var(--paper);border-radius:var(--r);padding:14px;display:flex;flex-wrap:wrap;gap:12px 8px;box-shadow:0 4px 0 var(--line)}
+.page .word{display:flex;gap:2px}
+.page .word svg{width:64px;height:64px}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:30;width:100%;height:100%}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -318,12 +333,13 @@ function home(){
     <div><h1><button class="namebtn" id="nameBtn">${h(profile.name)}</button>，今天來練字吧！</h1>
     <p>看筆順、描一描、自己寫，一筆一筆把字寫漂亮。</p></div></div>
   <button class="world" data-go="levels" style="--c:#E06BA8;--cbg:${tint('#E06BA8',.13)}"><div class="ico">🗺️</div><div><h2>闖關冒險</h2><p>${levels.length} 個關卡，已過 ${levels.filter(levelDone).length} 關・收集動物貼紙</p></div><div class="go">›</div></button>
+  <button class="world" data-go="hw" style="--c:#2B8CE6;--cbg:${tint('#2B8CE6',.13)}"><div class="ico">📒</div><div><h2>陪你寫作業</h2><p>輸入一組詞語，一個字一個字陪著寫完</p></div><div class="go">›</div></button>
   <button class="world" data-go="basic" style="--c:#FF8A2A;--cbg:${tint('#FF8A2A',.13)}"><div class="ico">丿</div><div><h2>基本筆畫</h2><p>橫、豎、撇、捺、點… 共 ${BASIC.length} 種</p></div><div class="go">›</div></button>
   <button class="world" data-go="units" style="--c:#22A86A;--cbg:${tint('#22A86A',.13)}"><div class="ico">氵</div><div><h2>部首樂園</h2><p>${UNITS.length} 個常用部首，已闖 ${doneUnits} 關</p></div><div class="go">›</div></button>
   <button class="world" data-go="free" style="--c:#7C5CF0;--cbg:${tint('#7C5CF0',.13)}"><div class="ico">字</div><div><h2>自由練習</h2><p>想寫哪個字都可以，名字也能練</p></div><div class="go">›</div></button>
   <p class="note">筆順依照教育部《常用國字標準字體筆順》。用手指在格子裡寫，每一筆都會檢查喔！</p>`);
   getChar('永').then(r=>{if(r)document.getElementById('heroMini')?.appendChild(miniSVG(makeStrokes(r,0,99),'var(--sun)'))});
-  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>({levels:levelMap,basic:basicList,units:unitList,free:freePage})[b.dataset.go]());
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>({hw:()=>hwPage(),levels:levelMap,basic:basicList,units:unitList,free:freePage})[b.dataset.go]());
   document.getElementById('nameBtn').onclick=nameEdit;
 }
 function nameEdit(){
@@ -584,6 +600,71 @@ function levelEdit(k){
   };
 }
 
+/* ---------- homework mode ---------- */
+function hwParse(text){ // keep order and duplicates; words split by non-Han
+  const words=[];let curw='';
+  for(const c of [...(text||'')]){if(/\p{Script=Han}/u.test(c))curw+=c;else if(curw){words.push(curw);curw=''}}
+  if(curw)words.push(curw);return words;
+}
+function hwPage(prefill){
+  const recent=store.get('hwRecent',[]);
+  let reps=store.get('hwReps',1);
+  show(`${topbar('陪你寫作業',true)}
+  <div class="freebox">
+    <div class="field"><label for="hw">今天要寫的詞語或字</label>
+      <textarea id="hw" placeholder="例如：拍手 左右 你們">${h(prefill??(recent[0]||''))}</textarea>
+      <span class="note">詞語之間空一格。會照順序一個字一個字寫，每個字都是：看筆順 → 描一次 → 自己寫。</span></div>
+    <div class="field"><label>每個字自己寫幾遍</label><div class="reps">${[1,2,3].map(n=>`<button data-r="${n}" aria-pressed="${n===reps}">${n} 遍</button>`).join('')}</div></div>
+    <div class="err" id="er"></div>
+    <button class="btn" id="go">開始寫作業 ›</button>
+  </div>
+  ${recent.length?`<div class="freebox"><div class="sec">最近的作業</div><div style="display:flex;flex-direction:column;gap:8px">${recent.map((r,i)=>`<button class="sbtn" data-i="${i}" style="text-align:left;font-family:var(--font-kai);font-size:19px">${h(r)}</button>`).join('')}</div></div>`:''}`);
+  bindBack(home);
+  app.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{reps=+b.dataset.r;store.set('hwReps',reps);app.querySelectorAll('[data-r]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  app.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{document.getElementById('hw').value=recent[+b.dataset.i]});
+  document.getElementById('go').onclick=async()=>{
+    const er=document.getElementById('er'),raw=document.getElementById('hw').value;
+    const words=hwParse(raw);
+    if(!words.length){er.textContent='請輸入至少一個中文字';return}
+    er.style.color='var(--ink-soft)';er.textContent='準備中…';
+    const items=[],missing=[];
+    for(const [wi,w] of words.entries()){
+      for(const ch of [...w]){
+        let ok=false;try{ok=!!(await getChar(ch))}catch(e){er.style.color='';er.textContent='載入失敗，請檢查網路後再試一次';return}
+        if(!ok){missing.push(ch);continue}
+        items.push({key:'c:'+ch,kind:'char',ch,wi,word:w,from:0,to:99,label:ch,sub:w,speak:w.length>1?`${ch}，${w}的${ch}`:ch,title:'陪你寫作業・'+w});
+      }
+    }
+    if(!items.length){er.style.color='';er.textContent=`「${missing.join('、')}」都沒有筆順資料，換別的字試試看`;return}
+    const text=words.join(' ');
+    store.set('hwRecent',[text,...recent.filter(x=>x!==text)].slice(0,5));
+    items.flow={reps,done:{},best:{},missing,onFinish:()=>hwDone(items)};
+    const startNow=()=>practice(items,0,()=>hwPage(text),'#2B8CE6');
+    if(missing.length){
+      er.style.color='';er.innerHTML=`「${h(missing.join('、'))}」不在教育部常用字表，沒有筆順資料，這次會先跳過。<br><button class="btn" id="go2" style="margin-top:8px">知道了，開始寫 ›</button>`;
+      document.getElementById('go2').onclick=startNow;
+    }else startNow();
+  };
+}
+async function hwDone(items){
+  const F=items.flow;const stars=items.reduce((a,_,k)=>a+(F.best[k]||0),0),max=items.length*3;
+  const words=[];items.forEach(it=>{(words[it.wi]=words[it.wi]||[]).push(it)});
+  show(`${topbar('作業寫完了！',true)}
+  <div class="hello"><div style="font-size:64px;line-height:1">🏅</div><div><h1>${h(profile.name)}把作業寫完了！</h1><p>共 ${items.length} 個字，拿到 ${stars} / ${max} 顆星。</p></div></div>
+  <div class="sec">今天寫的作業本</div>
+  <div class="page" id="pg"></div>
+  ${F.missing.length?`<p class="note">「${h(F.missing.join('、'))}」沒有筆順資料，這次跳過了。</p>`:''}
+  <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="again">再寫一次</button><button class="btn alt" id="new">寫別的作業</button><button class="btn alt" id="hm">回首頁</button></div>`);
+  bindBack(()=>hwPage());
+  sfx.win();confetti();setTimeout(confetti,800);speak(`作業寫完了！${profile.name}好棒！`);
+  const pg=document.getElementById('pg');
+  for(const w of words.filter(Boolean)){const d=document.createElement('div');d.className='word';pg.appendChild(d);
+    for(const it of w){const st=await loadItem(it);if(st)d.appendChild(miniSVG(st,'var(--ink)'))}}
+  document.getElementById('again').onclick=()=>{items.flow.done={};items.flow.best={};practice(items,0,()=>hwPage(),'#2B8CE6')};
+  document.getElementById('new').onclick=()=>hwPage('');
+  document.getElementById('hm').onclick=home;
+}
+
 /* ---------- practice ---------- */
 function resample(pts,n){
   if(pts.length===1)pts=[pts[0],[pts[0][0]+.1,pts[0][1]+.1]];
@@ -611,6 +692,7 @@ function practice(items,idx,onBack,color='#FF8A2A'){
   show(`${topbar(h(it.title),true)}
   <div class="modes" role="group" aria-label="練習方式">
     <button data-m="demo">① 看筆順</button><button data-m="trace">② 描描看</button><button data-m="self">③ 自己寫</button></div>
+  ${items.flow?`<div class="hwinfo"><span>📒 第 ${idx+1} / ${items.length} 個字</span><span class="w">${h(it.word||'')}</span></div><div class="wb" id="wb"></div>`:''}
   <div class="status"><div class="count" id="cnt"></div><div class="say" id="say" aria-live="polite"></div></div>
   <div class="boardwrap"><svg class="board" id="bd" viewBox="0 0 512 512" role="img" aria-label="${h(it.label)} 的寫字格"></svg></div>
   <div class="neat" id="neatRow" hidden><span>整齊度</span><div class="meter"><span id="neat"></span></div><span id="neatTxt"></span></div>
@@ -619,7 +701,7 @@ function practice(items,idx,onBack,color='#FF8A2A'){
     <button class="tool" id="tAgain">↺ 重寫</button>
     <button class="tool" id="tSpeak">🔊 唸唸看</button>
     <button class="tool" id="tGrid">${gridType==='tian'?'田字格':'米字格'}</button>
-    ${items.length>1?`<button class="tool" id="tNext">下一個 ›</button>`:''}
+    ${items.length>1&&!items.flow?`<button class="tool" id="tNext">下一個 ›</button>`:''}
   </div>
   <div class="speed" role="group" aria-label="示範速度"><span>🐢 示範速度</span>${SPEEDS.map(([v,t])=>`<button data-s="${v}" aria-pressed="${v===speed}">${t}</button>`).join('')}</div>`);
   bindBack(onBack);
@@ -631,6 +713,19 @@ function practice(items,idx,onBack,color='#FF8A2A'){
 
   function setSay(t,cls=''){say.textContent=t;say.className='say '+cls}
   function setCount(){cnt.innerHTML=strokes?(cur<strokes.length?`第 <b>${cur+1}</b> 筆<br><small>共 ${strokes.length} 筆</small>`:`共 ${strokes.length} 筆 ✓`):''}
+  function renderStrip(){
+    const wb=document.getElementById('wb');if(!wb)return;wb.innerHTML='';
+    items.forEach((x,k)=>{
+      if(k>0&&x.wi!==items[k-1].wi){const g=document.createElement('div');g.className='gap';wb.appendChild(g)}
+      const c=document.createElement('button');c.className='cell'+(k===idx?' now':'');
+      c.setAttribute('aria-label',`第${k+1}個字 ${x.ch}`);
+      c.innerHTML=`<div class="bx">${items.flow.done[k]?'':h(x.ch)}</div><small>${items.flow.done[k]?'✓':k===idx?'寫這個':''}</small>`;
+      if(items.flow.done[k])loadItem(x).then(st=>{if(st){const b=c.querySelector('.bx');b.textContent='';b.appendChild(miniSVG(st,color))}});
+      c.onclick=()=>{if(k!==idx)practice(items,k,onBack,color)};
+      wb.appendChild(c);
+    });
+    const now=wb.querySelector('.now');if(now)now.scrollIntoView({block:'nearest',inline:'center'});
+  }
   function setModes(){app.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===mode))}
   function stopAnims(){anims.forEach(a=>{try{a.cancel()}catch(e){}});anims=[];L.anim.innerHTML='';L.hint.innerHTML=''}
   function trackLen(t){let s=0;for(let i=1;i<t.length;i++)s+=Math.hypot(t[i][0]-t[i-1][0],t[i][1]-t[i-1][1]);return s}
@@ -687,7 +782,8 @@ function practice(items,idx,onBack,color='#FF8A2A'){
       numLabel(i,L.hint);
       await new Promise(r=>setTimeout(r,160/Math.sqrt(speed)));
     }
-    if(runDemo.t===token){cnt.innerHTML=`共 ${strokes.length} 筆`;setSay('換你寫寫看！','good');speak(it.speak)}
+    if(runDemo.t===token){cnt.innerHTML=`共 ${strokes.length} 筆`;setSay('換你寫寫看！','good');speak(it.speak);
+      if(items.flow)setTimeout(()=>{if(runDemo.t===token&&mode==='demo')startWrite('trace')},1300)}
   }
   function startWrite(m){
     runDemo.t=null;mode=m;setModes();cur=0;mistakes=0;failHere=0;quality=[];updateNeat();drawBase();setCount();
@@ -696,12 +792,24 @@ function practice(items,idx,onBack,color='#FF8A2A'){
   }
   function showCue(){L.hint.innerHTML='';if(mode==='trace'&&cur<strokes.length)startDot(cur,L.hint)}
 
+  let selfCount=0;
   function finish(){
     busy=true;
     let earned=1;
     if(mode==='self'){earned=mistakes<=1?3:2}
     const prev=progress[it.key]||0;
     if(earned>prev){progress[it.key]=earned;store.set('progress',progress)}
+    if(items.flow){
+      const F=items.flow,later=(fn,ms)=>{const t=setTimeout(()=>{busy=false;fn()},ms);F.timer=t};
+      document.querySelector('.starcount').innerHTML=`<b>★</b> ${totalStars()}`;
+      if(mode==='trace'){sfx.good();setSay('描好了！現在自己寫','good');later(()=>startWrite('self'),1200);return}
+      selfCount++;F.best[idx]=Math.max(F.best[idx]||0,earned);
+      if(selfCount<F.reps){sfx.good();setSay(`寫好了！再寫一遍（${selfCount+1}/${F.reps}）`,'good');later(()=>startWrite('self'),1200);return}
+      sfx.great();confetti();setSay(idx+1<items.length?`「${it.ch}」完成了！下一個字`:'全部寫完了！','good');speak(it.speak);
+      F.done[idx]=true;renderStrip();
+      later(()=>{idx+1<items.length?practice(items,idx+1,onBack,color):F.onFinish()},1800);
+      return;
+    }
     sfx.win();confetti();speak(it.speak);
     const avg=quality.reduce((a,b)=>a+b,0)/quality.length;
     const praise=mode==='self'?(earned===3?`${profile.name}太厲害了！`:`${profile.name}寫完了，好棒！`):`描得真好，${profile.name}！`;
@@ -768,7 +876,8 @@ function practice(items,idx,onBack,color='#FF8A2A'){
     app.querySelectorAll('[data-s]').forEach(x=>x.setAttribute('aria-pressed',x===b));if(strokes&&mode==='demo')runDemo()});
   document.getElementById('tGrid').onclick=e=>{gridType=gridType==='tian'?'mi':'tian';store.set('grid',gridType);e.target.textContent=gridType==='tian'?'田字格':'米字格';L.grid.innerHTML='';gridSVG(L.grid,gridType)};
   const nx=document.getElementById('tNext');if(nx)nx.onclick=()=>practice(items,(idx+1)%items.length,onBack,color);
-  cleanup=()=>{runDemo.t=null;stopAnims();if(cleanupOv)cleanupOv();document.querySelectorAll('.over').forEach(o=>o.remove())};
+  if(items.flow)renderStrip();
+  cleanup=()=>{if(items.flow)clearTimeout(items.flow.timer);runDemo.t=null;stopAnims();if(cleanupOv)cleanupOv();document.querySelectorAll('.over').forEach(o=>o.remove())};
 
   setModes();setSay('載入中…');
   loadItem(it).then(s=>{if(!s){setSay('找不到這個字的筆順','bad');return}strokes=s;runDemo()}).catch(()=>setSay('載入失敗，請檢查網路','bad'));
