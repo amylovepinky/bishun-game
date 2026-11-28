@@ -165,7 +165,7 @@ h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
 .prev span.bad{background:#FFE3E3;color:var(--grid);text-decoration:line-through}
 .switch{display:flex;align-items:center;gap:10px;font-weight:700}
 .switch input{width:24px;height:24px}
-.speed{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;width:100%;max-width:420px;align-self:center}
+.speed{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;max-width:360px;align-self:center}
 .speed span{grid-column:1/-1;text-align:center;font-weight:700;font-size:15px;color:var(--ink-soft)}
 .speed button{background:var(--paper);border-radius:99px;padding:8px 4px;font-weight:700;font-size:15px;box-shadow:0 2px 0 var(--line)}
 .speed button[aria-pressed="true"]{background:var(--berry);color:#fff;box-shadow:0 2px 0 #5038B8}
@@ -234,7 +234,8 @@ let profile = store.get('profile',{name:'潼潼'});
 let progress = store.get('progress',{});
 let gridType = store.get('grid','tian');
 let speed = +store.get('speed',1)||1;
-const SPEEDS=[[1,'正常'],[0.5,'0.5 倍'],[0.25,'0.25 倍'],[0.1,'0.1 倍']];
+if(![1,0.5,0.25].includes(speed))speed=0.25;
+const SPEEDS=[[1,'正常'],[0.5,'0.5 倍'],[0.25,'0.25 倍']];
 let levels = store.get('levels',null)||DEFAULT_LEVELS.map(l=>({...l}));
 let lvSettings = store.get('lvset',{lock:true,need:2});
 const saveLevels=()=>store.set('levels',levels);
